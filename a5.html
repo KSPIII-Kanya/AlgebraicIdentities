@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanya Sampoorna Project 3.0 - (a+b)^3 Simulation</title>
+    <!-- All styles are embedded here for offline use -->
+    <style>
+        /* * UI/UX Overhaul based on user-provided image.
+         * Colors, fonts, and layout are updated to match the project's visual identity.
+         * All external dependencies removed.
+         */
+
+        /* Reset and Basic Setup */
+        :root {
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            
+            /* Project-specific colors from UI sample */
+            --color-header-bg: #00558C; /* Dark Blue */
+            --color-header-text: #FFFFFF;
+            --color-page-bg: #F0F4F8; /* Light blue-grey */
+            --color-panel-bg: #FFFFFF;
+            --color-text-main: #333333;
+            --color-text-secondary: #555555;
+            --color-heading: #00558C;
+            
+            --color-btn-reset: #E74C3C; /* Red */
+            --color-btn-reset-hover: #C0392B;
+            --color-btn-menu: #007BFF; /* Blue */
+            --color-btn-menu-hover: #0056b3;
+            --color-instruction-highlight: #007BFF;
+
+            /* 'a' and 'b' visual colors */
+            --color-a: rgba(0, 123, 255, 0.8); /* Blue */
+            --color-b: rgba(253, 126, 20, 0.8); /* Orange */
+
+            /* Piece colors */
+            --color-a3: rgba(0, 123, 255, 0.7); /* a*a*a */
+            --color-b3: rgba(253, 126, 20, 0.7); /* b*b*b */
+            --color-a2b: rgba(23, 162, 184, 0.7); /* a*a*b */
+            --color-ab2: rgba(40, 167, 69, 0.7); /* a*b*b */
+
+            --shadow-md: 0 4px 10px rgba(0,0,0,0.08);
+            --border-radius: 8px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--color-page-bg);
+            color: var(--color-text-main);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--color-header-bg);
+            color: var(--color-header-text);
+            text-align: center;
+            padding: 1rem 1.5rem;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        header h2 {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-weight: 600; /* Changed from 400 */
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+
+        header p {
+            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-weight: 600; /* Changed from 300 */
+            opacity: 0.8;
+        }
+
+        /* Main Content Wrapper */
+        .content-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+            flex-grow: 1;
+        }
+        
+        /* Main simulation panel */
+        .simulation-container {
+            background-color: var(--color-panel-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        /* Title and Buttons Bar */
+        .title-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .identity-title {
+            color: var(--color-heading);
+        }
+        
+        .identity-title h3 {
+            font-size: clamp(1.2rem, 3vw, 1.75rem);
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .identity-title p {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--color-text-secondary);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            color: white;
+        }
+        
+        #reset-btn {
+            background-color: var(--color-btn-reset);
+        }
+        #reset-btn:hover {
+            background-color: var(--color-btn-reset-hover);
+        }
+        
+        #menu-btn {
+            background-color: var(--color-btn-menu);
+        }
+        #menu-btn:hover {
+            background-color: var(--color-btn-menu-hover);
+        }
+        
+        /* Main simulation area */
+        .simulation-body {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* 3D Scene Container */
+        .scene-container {
+            width: 100%;
+            min-height: 400px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #eef5fb, #ffffff);
+            flex: 2; /* Takes more space */
+        }
+
+        #scene {
+            position: relative;
+            transform-style: preserve-3d;
+            width: 300px; /* Base size, will be scaled */
+            height: 300px; /* Base size, will be scaled */
+            transform: rotateX(-20deg) rotateY(-30deg);
+            transition: transform 0.5s ease-out;
+            cursor: grab;
+            user-select: none;
+        }
+        #scene:active {
+            cursor: grabbing;
+        }
+
+        /* The 8 pieces of the cube */
+        .cube-piece {
+            position: absolute;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                        box-shadow 0.3s ease;
+            cursor: pointer;
+        }
+        
+        /* Highlighting for interactive steps */
+        .cube-piece.highlight {
+            /* Add a glowing effect to guide the user */
+            box-shadow: 0 0 20px 10px rgba(0, 123, 255, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        .cube-piece.found {
+            /* Dim the ones already found */
+            opacity: 0.5;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px 5px rgba(0, 123, 255, 0.5); }
+            50% { box-shadow: 0 0 30px 15px rgba(0, 123, 255, 0.8); }
+            100% { box-shadow: 0 0 15px 5px rgba(0, 123, 255, 0.5); }
+        }
+
+        .face {
+            position: absolute;
+            border: 1px solid rgba(0,0,0,0.3);
+            opacity: 1; /* Changed from 0.85 to 1 */
+            background-size: cover;
+            backface-visibility: hidden; /* Added to fix 3D overlap */
+        }
+        
+        /* Piece Colors */
+        #a3 .face { background-color: var(--color-a3); }
+        #b3 .face { background-color: var(--color-b3); }
+        .a2b .face { background-color: var(--color-a2b); }
+        .ab2 .face { background-color: var(--color-ab2); }
+        
+        /* Faces setup will be done by JS */
+
+        /* Instructions Panel */
+        #instructions-panel {
+            flex: 1; /* Takes less space */
+            padding: 1.5rem;
+            background-color: #fafcff;
+            border-top: 1px solid #e0e0e0;
+            min-height: 150px;
+        }
+        
+        #instructions-panel h4 {
+            color: var(--color-heading);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        #instruction-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--color-text-secondary);
+        }
+        
+        #instruction-text strong {
+            color: var(--color-instruction-highlight);
+            font-weight: 600;
+        }
+        
+        #instruction-text .formula {
+            font-family: "Courier New", Courier, monospace;
+            font-weight: bold;
+            color: var(--color-header-bg);
+            background-color: #eaf4ff;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--color-header-bg);
+            color: var(--color-header-text);
+            text-align: center;
+            padding: 1rem;
+            width: 100%;
+            font-size: 0.9rem;
+            font-weight: 600; /* Added bold */
+            opacity: 0.9;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive Layout */
+        @media (min-width: 900px) {
+            .simulation-body {
+                flex-direction: row;
+            }
+            #instructions-panel {
+                border-top: none;
+                border-left: 1px solid #e0e0e0;
+            }
+            .scene-container {
+                min-height: 500px; /* Taller on desktop */
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .content-wrapper {
+                padding: 0.5rem;
+                margin: 0.5rem auto;
+            }
+            .title-bar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .button-group {
+                width: 100%;
+            }
+            .btn {
+                flex-grow: 1;
+                width: 50%;
+            }
+            .scene-container {
+                padding: 0.5rem;
+                min-height: 300px;
+            }
+            #instructions-panel {
+                padding: 1rem;
+            }
+            #instruction-text {
+                font-size: 1rem;
+            }
+            header, footer {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <h2>The project is supported by TITAN and implemented by KALIKE</h2>
+        <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="simulation-container">
+            
+            <div class="title-bar">
+                <div class="identity-title">
+                    <h3>Cube of a Sum</h3>
+                    <p>(a + b)<sup>3</sup> = a<sup>3</sup> + 3a<sup>2</sup>b + 3ab<sup>2</sup> + b<sup>3</sup></p>
+                </div>
+                <div class="button-group">
+                    <button class="btn" id="reset-btn">Reset</button>
+                    <button class="btn" id="menu-btn">Back to Menu</button>
+                </div>
+            </div>
+
+            <div class="simulation-body">
+                <!-- 3D Scene -->
+                <div class="scene-container">
+                    <div id="scene">
+                        <!-- The 8 cube pieces will be generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Instructions Panel -->
+                <div id="instructions-panel">
+                    <h4>Step-by-Step Instructions</h4>
+                    <div id="instruction-text">
+                        Welcome! Let's build the identity for <span class="formula">(a + b)³</span>.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        Powered by AI and created by Kalike: An initiative of Tata Trusts.
+    </footer>
+
+    <!-- All JavaScript is embedded here for offline use -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Element References ---
+            const scene = document.getElementById('scene');
+            const instructionText = document.getElementById('instruction-text');
+            const resetBtn = document.getElementById('reset-btn');
+            // const menuBtn = document.getElementById('menu-btn'); // Add functionality if needed
+
+            // --- Simulation State ---
+            let a = 6; // Fixed 'a' proportion
+            let b = 3; // Fixed 'b' proportion
+            let scale = 15; // Scales a/b values to pixels
+            let isExploded = false;
+            let currentStep = 0;
+
+            // --- 3D Scene Drag Logic ---
+            let isDragging = false;
+            let previousMouseX = 0;
+            let previousMouseY = 0;
+            let rotationX = -20;
+            let rotationY = -30;
+
+            const onMouseDown = (e) => {
+                // Only drag if not clicking on an interactive piece
+                if (e.target.classList.contains('face')) {
+                     // Check if the parent piece is the one we're looking for
+                    handlePieceClick(e.target.parentElement.id);
+                    return;
+                }
+                isDragging = true;
+                previousMouseX = e.clientX || e.touches[0].clientX;
+                previousMouseY = e.clientY || e.touches[0].clientY;
+                scene.style.transition = 'none';
+                scene.style.cursor = 'grabbing';
+            };
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const clientX = e.clientX || e.touches[0].clientX;
+                const clientY = e.clientY || e.touches[0].clientY;
+                
+                const deltaX = clientX - previousMouseX;
+                const deltaY = clientY - previousMouseY;
+                
+                rotationY += deltaX * 0.5;
+                rotationX -= deltaY * 0.5;
+                rotationX = Math.max(-85, Math.min(85, rotationX)); // Clamp rotation
+                
+                scene.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${getSceneScale()})`;
+                
+                previousMouseX = clientX;
+                previousMouseY = clientY;
+            };
+
+            const onMouseUp = () => {
+                if (!isDragging) return;
+                isDragging = false;
+                scene.style.transition = 'transform 0.5s ease-out';
+                scene.style.cursor = 'grab';
+            };
+
+            // Add mouse and touch events
+            scene.addEventListener('mousedown', onMouseDown);
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            scene.addEventListener('touchstart', (e) => onMouseDown(e.touches[0] ? e : { touches: [e], target: e.target }), { passive: false });
+            document.addEventListener('touchmove', (e) => onMouseMove(e.touches[0] ? e : { touches: [e] }), { passive: false });
+            document.addEventListener('touchend', onMouseUp);
+
+
+            // --- Core Simulation Logic ---
+
+            /**
+             * Creates a single cuboid piece with 6 faces.
+             */
+            function createCubePiece(id, cssClass, w, d, h) {
+                const piece = document.createElement('div');
+                piece.id = id;
+                piece.className = `cube-piece ${cssClass}`;
+                
+                const w_ = w * scale;
+                const d_ = d * scale;
+                const h_ = h * scale;
+
+                const faces = [
+                    { class: 'front',  transform: `translateZ(${h_/2}px)` },
+                    { class: 'back',   transform: `translateZ(-${h_/2}px) rotateY(180deg)` },
+                    { class: 'right',  transform: `rotateY(90deg) translateZ(${w_/2}px)` },
+                    { class: 'left',   transform: `rotateY(-90deg) translateZ(${w_/2}px)` },
+                    { class: 'top',    transform: `rotateX(90deg) translateZ(${d_/2}px)` },
+                    { class: 'bottom', transform: `rotateX(-90deg) translateZ(${d_/2}px)` }
+                ];
+
+                for (let faceInfo of faces) {
+                    const face = document.createElement('div');
+                    face.className = `face ${faceInfo.class}`;
+                    
+                    if (faceInfo.class === 'front' || faceInfo.class === 'back') {
+                        face.style.width = `${w_}px`;
+                        face.style.height = `${d_}px`;
+                    } else if (faceInfo.class === 'right' || faceInfo.class === 'left') {
+                        face.style.width = `${h_}px`;
+                        face.style.height = `${d_}px`;
+                    } else if (faceInfo.class === 'top' || faceInfo.class === 'bottom') {
+                        face.style.width = `${w_}px`;
+                        face.style.height = `${h_}px`;
+                    }
+                    
+                    face.style.transform = faceInfo.transform;
+                    piece.appendChild(face);
+                }
+                
+                // Set piece dimensions (for layout/positioning)
+                piece.style.width = `${w_}px`;
+                piece.style.height = `${d_}px`;
+                
+                // Add click handler for interactivity
+                piece.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Stop event from bubbling to scene
+                    handlePieceClick(piece.id);
+                });
+                
+                return piece;
+            }
+
+            /**
+             * Calculates the correct scale to fit the cube in the scene
+             */
+            function getSceneScale() {
+                const totalSize = (a + b) * scale;
+                const containerSize = Math.min(scene.parentElement.clientWidth, scene.parentElement.clientHeight) * 0.8;
+                return containerSize / (totalSize * 1.5); // *1.5 for padding
+            }
+            
+            /**
+             * Creates/updates all 8 pieces of the (a+b)^3 cube
+             */
+            function buildCube() {
+                scene.innerHTML = ''; // Clear old pieces
+                
+                const a_ = a * scale;
+                const b_ = b * scale;
+                
+                // Piece definitions: [id, class, w, d, h] (w=x, d=y, h=z)
+                const piecesData = [
+                    ['a3', 'a3', a, a, a],
+                    ['b3', 'b3', b, b, b],
+                    ['a2b_1', 'a2b', a, a, b],
+                    ['a2b_2', 'a2b', a, b, a],
+                    ['a2b_3', 'a2b', b, a, a],
+                    ['ab2_1', 'ab2', a, b, b],
+                    ['ab2_2', 'ab2', b, a, b],
+                    ['ab2_3', 'ab2', b, b, a]
+                ];
+
+                const pieces = piecesData.map(p => createCubePiece(...p));
+                
+                // Position the pieces to form the (a+b) cube
+                // We'll center the cube at (0,0,0)
+                // 'a' part is positive, 'b' part is negative
+                const a_c = a_ / 2;
+                const b_c = b_ / 2;
+                
+                // [x, y, z] transforms for piece centers
+                const positions = {
+                    'a3':    `translate3d(${a_c}px, ${a_c}px, ${a_c}px)`,
+                    'b3':    `translate3d(-${b_c}px, -${b_c}px, -${b_c}px)`,
+                    'a2b_1': `translate3d(${a_c}px, ${a_c}px, -${b_c}px)`, // a*a*b
+                    'a2b_2': `translate3d(${a_c}px, -${b_c}px, ${a_c}px)`, // a*b*a
+                    'a2b_3': `translate3d(-${b_c}px, ${a_c}px, ${a_c}px)`, // b*a*a
+                    'ab2_1': `translate3d(${a_c}px, -${b_c}px, -${b_c}px)`, // a*b*b
+                    'ab2_2': `translate3d(-${b_c}px, ${a_c}px, -${b_c}px)`, // b*a*b
+                    'ab2_3': `translate3d(-${b_c}px, -${b_c}px, ${a_c}px)`  // b*b*a
+                };
+
+                pieces.forEach(p => {
+                    p.style.transform = positions[p.id];
+                    scene.appendChild(p);
+                });
+                
+                // Set initial transform
+                scene.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${getSceneScale()})`;
+
+                // Update explosion transforms
+                updateExplosionCSS(a_ + b_);
+            }
+
+            /**
+             * Generates the CSS for the 'exploded' state
+             */
+            function updateExplosionCSS(totalSize) {
+                const oldStyle = document.getElementById('explosion-style');
+                if (oldStyle) oldStyle.remove();
+                
+                const offset = totalSize * 0.4; // How far to explode
+                const a_c = (a * scale) / 2;
+                const b_c = (b * scale) / 2;
+                
+                // Exploded positions
+                const explosionTransforms = {
+                    'a3':    `translate3d(${a_c + offset}px, ${a_c + offset}px, ${a_c + offset}px)`,
+                    'b3':    `translate3d(-${b_c - offset}px, -${b_c - offset}px, -${b_c - offset}px)`,
+                    'a2b_1': `translate3d(${a_c + offset}px, ${a_c + offset}px, -${b_c - offset}px)`,
+                    'a2b_2': `translate3d(${a_c + offset}px, -${b_c - offset}px, ${a_c + offset}px)`,
+                    'a2b_3': `translate3d(-${b_c - offset}px, ${a_c + offset}px, ${a_c + offset}px)`,
+                    'ab2_1': `translate3d(${a_c + offset}px, -${b_c - offset}px, -${b_c - offset}px)`,
+                    'ab2_2': `translate3d(-${b_c - offset}px, ${a_c + offset}px, -${b_c - offset}px)`,
+                    'ab2_3': `translate3d(-${b_c - offset}px, -${b_c - offset}px, ${a_c + offset}px)`
+                };
+                
+                let css = '';
+                for (const id in explosionTransforms) {
+                    css += `.exploded #${id} { transform: ${explosionTransforms[id]} !important; }\n`;
+                }
+                
+                const styleSheet = document.createElement("style");
+                styleSheet.id = 'explosion-style';
+                styleSheet.innerText = css;
+                document.head.appendChild(styleSheet);
+            }
+
+            // --- Interactive Step Logic ---
+
+            const simulationSteps = [
+                { // Step 0: Initial
+                    text: "This is the full cube, representing <span class='formula'>(a + b)<sup>3</sup></span>. <strong>Click the cube</strong> to see the 8 pieces it's made of!",
+                    highlight: [], // Highlight nothing
+                    clickTarget: 'scene' // User can click anywhere on the cube
+                },
+                { // Step 1: Exploded, find a3
+                    text: "Great! The cube is made of 8 smaller blocks. Let's find them. <strong>Click the big blue <span class='formula'>a<sup>3</sup></span> block.</strong>",
+                    highlight: ['a3'],
+                    clickTarget: 'a3'
+                },
+                { // Step 2: Found a3, find b3
+                    text: "Perfect! That's the <span class='formula'>a<sup>3</sup></span> block (volume a &times; a &times; a). Now, <strong>click the small orange <span class='formula'>b<sup>3</sup></span> block.</strong>",
+                    highlight: ['b3'],
+                    clickTarget: 'b3',
+                    found: ['a3']
+                },
+                { // Step 3: Found b3, find a2b
+                    text: "Excellent! That's the <span class='formula'>b<sup>3</sup></span> block (volume b &times; b &times; b). Next, let's find the $a²b$ blocks. <strong>Click one of the 3 teal-colored <span class='formula'>a<sup>2</sup>b</span> blocks.</strong>",
+                    highlight: ['a2b_1', 'a2b_2', 'a2b_3'],
+                    clickTarget: 'a2b',
+                    found: ['a3', 'b3']
+                },
+                { // Step 4: Found a2b, find ab2
+                    text: "You found them! There are 3 <span class='formula'>a<sup>2</sup>b</span> blocks. Their total volume is <span class='formula'>3a<sup>2</sup>b</span>. Finally, <strong>click one of the 3 green <span class='formula'>ab<sup>2</sup></span> blocks.</strong>",
+                    highlight: ['ab2_1', 'ab2_2', 'ab2_3'],
+                    clickTarget: 'ab2',
+                    found: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3']
+                },
+                { // Step 5: Found ab2, Conclusion
+                    text: "Fantastic! There are 3 <span class='formula'>ab<sup>2</sup></span> blocks. Their total volume is <span class='formula'>3ab<sup>2</sup></span>. You've found all 8 pieces!",
+                    highlight: [],
+                    clickTarget: null, // No more clicking
+                    found: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                },
+                { // Step 6: Final formula
+                    text: "By adding all the pieces, we prove the identity: <br> <span class='formula'>(a + b)<sup>3</sup> = a<sup>3</sup> + 3a<sup>2</sup>b + 3ab<sup>2</sup> + b<sup>3</sup></span>. <br><br><strong>Click 'Reset' to explore again!</strong>",
+                    highlight: [],
+                    clickTarget: null,
+                    found: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                }
+            ];
+
+            function setStep(stepIndex) {
+                currentStep = stepIndex;
+                const step = simulationSteps[stepIndex];
+                
+                if (!step) return;
+
+                // Update instruction text
+                instructionText.innerHTML = step.text;
+                
+                // Explode cube on step 1
+                if (stepIndex === 1 && !isExploded) {
+                    document.body.classList.add('exploded');
+                    isExploded = true;
+                }
+                
+                // Reassemble cube if step 0
+                if (stepIndex === 0 && isExploded) {
+                    document.body.classList.remove('exploded');
+                    isExploded = false;
+                }
+
+                // Update highlights
+                document.querySelectorAll('.cube-piece').forEach(piece => {
+                    piece.classList.remove('highlight');
+                    piece.classList.remove('found');
+                    
+                    const id = piece.id;
+                    const cssClass = piece.classList.contains('a2b') ? 'a2b' : (piece.classList.contains('ab2') ? 'ab2' : '');
+
+                    if (step.highlight.includes(id) || step.highlight.includes(cssClass)) {
+                        piece.classList.add('highlight');
+                    }
+                    
+                    if (step.found && (step.found.includes(id) || step.found.includes(cssClass))) {
+                        piece.classList.add('found');
+                    }
+                });
+            }
+
+            function handlePieceClick(pieceId) {
+                const step = simulationSteps[currentStep];
+                if (!step) return;
+
+                // Handle first click to explode
+                if (currentStep === 0 && (step.clickTarget === 'scene' || pieceId)) {
+                    setStep(1);
+                    return;
+                }
+
+                // Check if the click is correct
+                let target = step.clickTarget;
+                let clickedPiece = document.getElementById(pieceId);
+                
+                if (!clickedPiece) return; // Should not happen
+                
+                let isCorrectClick = false;
+                if (target === pieceId) {
+                    isCorrectClick = true;
+                } else if (target === 'a2b' && clickedPiece.classList.contains('a2b')) {
+                    isCorrectClick = true;
+                } else if (target === 'ab2' && clickedPiece.classList.contains('ab2')) {
+                    isCorrectClick = true;
+                }
+
+                if (isCorrectClick) {
+                    // Advance to next step
+                    setStep(currentStep + 1);
+                    
+                    // If we just finished, show the final step after a delay
+                    if (currentStep === 5) {
+                        setTimeout(() => {
+                            setStep(6);
+                        }, 1500); // Wait 1.5s
+                    }
+                }
+            }
+
+            function resetSimulation() {
+                setStep(0);
+            }
+
+            // --- Event Handlers ---
+            resetBtn.addEventListener('click', resetSimulation);
+            
+            // Re-run buildCube on window resize to adjust scale
+            window.addEventListener('resize', () => {
+                scene.style.transform = `rotateX(${rotationX}deg) rotateY(${rotationY}deg) scale(${getSceneScale()})`;
+            });
+
+            // --- Initial Setup ---
+            buildCube();
+            setStep(0);
+        });
+    </script>
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanya Sampoorna Project 3.0 - (a+b)^3 Simulation</title>
+    <!-- All styles are embedded here for offline use -->
+    <style>
+        /* * UI/UX Overhaul based on user-provided image.
+         * Colors, fonts, and layout are updated to match the project's visual identity.
+         * All external dependencies removed.
+         */
+
+        /* Reset and Basic Setup */
+        :root {
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            
+            /* Project-specific colors from UI sample */
+            --color-header-bg: #00558C; /* Dark Blue */
+            --color-header-text: #FFFFFF;
+            --color-page-bg: #F0F4F8; /* Light blue-grey */
+            --color-panel-bg: #FFFFFF;
+            --color-text-main: #333333;
+            --color-text-secondary: #555555;
+            --color-heading: #00558C;
+            
+            --color-btn-reset: #E74C3C; /* Red */
+            --color-btn-reset-hover: #C0392B;
+            --color-btn-menu: #007BFF; /* Blue */
+            --color-btn-menu-hover: #0056b3;
+            --color-instruction-highlight: #007BFF;
+
+            /* 'a' and 'b' visual colors */
+            --color-a: rgba(0, 123, 255, 0.8); /* Blue */
+            --color-b: rgba(253, 126, 20, 0.8); /* Orange */
+
+            /* Piece colors */
+            --color-a3: rgba(0, 123, 255, 0.7); /* a*a*a */
+            --color-b3: rgba(253, 126, 20, 0.7); /* b*b*b */
+            --color-a2b: rgba(23, 162, 184, 0.7); /* a*a*b */
+            --color-ab2: rgba(40, 167, 69, 0.7); /* a*b*b */
+
+            --shadow-md: 0 4px 10px rgba(0,0,0,0.08);
+            --border-radius: 8px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--color-page-bg);
+            color: var(--color-text-main);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--color-header-bg);
+            color: var(--color-header-text);
+            text-align: center;
+            padding: 1rem 1.5rem;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        header h2 {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-weight: 600; /* Changed from 400 */
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+
+        header p {
+            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-weight: 600; /* Changed from 300 */
+            opacity: 0.8;
+        }
+
+        /* Main Content Wrapper */
+        .content-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+            flex-grow: 1;
+        }
+        
+        /* Main simulation panel */
+        .simulation-container {
+            background-color: var(--color-panel-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        /* Title and Buttons Bar */
+        .title-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .identity-title {
+            color: var(--color-heading);
+        }
+        
+        .identity-title h3 {
+            font-size: clamp(1.2rem, 3vw, 1.75rem);
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .identity-title p {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--color-text-secondary);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            color: white;
+        }
+        
+        #reset-btn {
+            background-color: var(--color-btn-reset);
+        }
+        #reset-btn:hover {
+            background-color: var(--color-btn-reset-hover);
+        }
+        
+        #menu-btn {
+            background-color: var(--color-btn-menu);
+        }
+        #menu-btn:hover {
+            background-color: var(--color-btn-menu-hover);
+        }
+        
+        /* Main simulation area */
+        .simulation-body {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* 3D Scene Container */
+        .scene-container {
+            width: 100%;
+            min-height: 400px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #eef5fb, #ffffff);
+            flex: 2; /* Takes more space */
+        }
+
+        #scene {
+            position: relative;
+            /* No longer preserve-3d, this is a 2.5D isometric stage */
+            width: 300px; /* Base size, will be scaled */
+            height: 300px; /* Base size, will be scaled */
+            /* A good static isometric angle */
+            transform: scale(var(--scene-scale, 1)) rotate(0deg); 
+            transition: transform 0.5s ease-out;
+            user-select: none;
+            /* Centering the origin for positioning */
+            transform-origin: center center;
+        }
+
+        /* The 8 pieces of the cube - NEW 2.5D STYLE */
+        .cube-piece {
+            position: absolute;
+            transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1), 
+                        box-shadow 0.3s ease;
+            cursor: pointer;
+            /* Set origin for clean scaling/translating */
+            transform-origin: bottom left;
+        }
+        
+        /* Highlighting for interactive steps */
+        .cube-piece.highlight {
+            /* Add a glowing effect to guide the user */
+            box-shadow: 0 0 20px 10px rgba(0, 123, 255, 0.7);
+            animation: pulse 1.5s infinite;
+        }
+        .cube-piece.found {
+            /* Dim the ones already found */
+            opacity: 0.5;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px 5px rgba(0, 123, 255, 0.5); }
+            50% { box-shadow: 0 0 30px 15px rgba(0, 123, 255, 0.8); }
+            100% { box-shadow: 0 0 15px 5px rgba(0, 123, 255, 0.5); }
+        }
+
+        .face {
+            /* This class is now a generic face, specific styles below */
+            position: absolute;
+            border: 1px solid rgba(0,0,0,0.3);
+            opacity: 1;
+            background-size: cover;
+            /* All faces will be built from a single point */
+            transform-origin: bottom left;
+        }
+
+        /* NEW 2.5D/ISOMETRIC FACE STYLES */
+        .face-front {
+            /* Skewed square for the front face */
+            transform: skewY(-30deg);
+        }
+        .face-side {
+            /* Skewed and rotated for the side face */
+            transform: skewX(-60deg) translateX(100%) rotateY(90deg);
+        }
+        .face-top {
+            /* Skewed for the top face */
+            transform: skewX(-60deg) translateY(-100%) rotateX(90deg);
+        }
+        
+        /* Piece Colors */
+        #a3 .face { background-color: var(--color-a3); }
+        #b3 .face { background-color: var(--color-b3); }
+        .a2b .face { background-color: var(--color-a2b); }
+        .ab2 .face { background-color: var(--color-ab2); }
+        
+        /* Faces setup will be done by JS */
+
+        /* Instructions Panel */
+        #instructions-panel {
+            flex: 1; /* Takes less space */
+            padding: 1.5rem;
+            background-color: #fafcff;
+            border-top: 1px solid #e0e0e0;
+            min-height: 150px;
+        }
+        
+        #instructions-panel h4 {
+            color: var(--color-heading);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        #instruction-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--color-text-secondary);
+        }
+        
+        #instruction-text strong {
+            color: var(--color-instruction-highlight);
+            font-weight: 600;
+        }
+        
+        #instruction-text .formula {
+            font-family: "Courier New", Courier, monospace;
+            font-weight: bold;
+            color: var(--color-header-bg);
+            background-color: #eaf4ff;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--color-header-bg);
+            color: var(--color-header-text);
+            text-align: center;
+            padding: 1rem;
+            width: 100%;
+            font-size: 0.9rem;
+            font-weight: 600; /* Added bold */
+            opacity: 0.9;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive Layout */
+        @media (min-width: 900px) {
+            .simulation-body {
+                flex-direction: row;
+            }
+            #instructions-panel {
+                border-top: none;
+                border-left: 1px solid #e0e0e0;
+            }
+            .scene-container {
+                min-height: 500px; /* Taller on desktop */
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .content-wrapper {
+                padding: 0.5rem;
+                margin: 0.5rem auto;
+            }
+            .title-bar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .button-group {
+                width: 100%;
+            }
+            .btn {
+                flex-grow: 1;
+                width: 50%;
+            }
+            .scene-container {
+                padding: 0.5rem;
+                min-height: 300px;
+            }
+            #instructions-panel {
+                padding: 1rem;
+            }
+            #instruction-text {
+                font-size: 1rem;
+            }
+            header, footer {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <h2>The project is supported by TITAN and implemented by KALIKE</h2>
+        <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="simulation-container">
+            
+            <div class="title-bar">
+                <div class="identity-title">
+                    <h3>Cube of a Sum</h3>
+                    <p>(a + b)<sup>3</sup> = a<sup>3</sup> + 3a<sup>2</sup>b + 3ab<sup>2</sup> + b<sup>3</sup></p>
+                </div>
+                <div class="button-group">
+                    <button class="btn" id="reset-btn">Reset</button>
+                    <button class="btn" id="menu-btn">Back to Menu</button>
+                </div>
+            </div>
+
+            <div class="simulation-body">
+                <!-- 3D Scene -->
+                <div class="scene-container">
+                    <div id="scene">
+                        <!-- The 8 cube pieces will be generated by JS -->
+                    </div>
+                </div>
+
+                <!-- Instructions Panel -->
+                <div id="instructions-panel">
+                    <h4>Step-by-Step Instructions</h4>
+                    <div id="instruction-text">
+                        Welcome! Let's build the identity for <span class="formula">(a + b)³</span>.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        Powered by AI and created by Kalike: An initiative of Tata Trusts.
+    </footer>
+
+    <!-- All JavaScript is embedded here for offline use -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Element References ---
+            const scene = document.getElementById('scene');
+            const instructionText = document.getElementById('instruction-text');
+            const resetBtn = document.getElementById('reset-btn');
+            // const menuBtn = document.getElementById('menu-btn'); // Add functionality if needed
+
+            // --- Simulation State ---
+            let a = 60; // Fixed 'a' proportion (larger for pixels)
+            let b = 30; // Fixed 'b' proportion (larger for pixels)
+            // Scale is now 1:1, a and b are pixel values
+            let isExploded = false;
+            let currentStep = 0;
+
+            // --- 3D Scene Drag Logic ---
+            // REMOVED: No more buggy dragging. Static view is cleaner.
+            
+            // --- Core Simulation Logic ---
+
+            /**
+             * Creates a single cuboid piece with 3 faces (2.5D)
+             */
+            function createCubePiece(id, cssClass, w, h, d) {
+                const piece = document.createElement('div');
+                piece.id = id;
+                piece.className = `cube-piece ${cssClass}`;
+                
+                // Create the 3 visible faces
+                const faceTypes = ['front', 'side', 'top'];
+                faceTypes.forEach(type => {
+                    const face = document.createElement('div');
+                    face.className = `face face-${type}`;
+                    
+                    // Set dimensions
+                    if (type === 'front') {
+                        face.style.width = `${w}px`;
+                        face.style.height = `${h}px`;
+                    } else if (type === 'side') {
+                        face.style.width = `${d}px`;
+                        face.style.height = `${h}px`;
+                    } else if (type === 'top') {
+                        face.style.width = `${w}px`;
+                        face.style.height = `${d}px`;
+                    }
+                    
+                    piece.appendChild(face);
+                });
+                
+                // Add click handler for interactivity
+                piece.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Stop event from bubbling to scene
+                    handlePieceClick(piece.id);
+                });
+                
+                return piece;
+            }
+
+            /**
+             * Calculates the correct scale to fit the cube in the scene
+             */
+            function getSceneScale() {
+                const totalSize = (a + b) * 1.5; // *1.5 for isometric projection
+                const containerSize = Math.min(scene.parentElement.clientWidth, scene.parentElement.clientHeight) * 0.8;
+                const scale = containerSize / totalSize;
+                // Apply scale using a CSS variable
+                scene.style.setProperty('--scene-scale', scale);
+                return scale;
+            }
+            
+            /**
+             * Creates/updates all 8 pieces of the (a+b)^3 cube
+             */
+            function buildCube() {
+                scene.innerHTML = ''; // Clear old pieces
+                
+                // Piece definitions: [id, class, w, h, d] (w=x, h=y, d=z)
+                const piecesData = [
+                    ['a3', 'a3', a, a, a],
+                    ['b3', 'b3', b, b, b],
+                    ['a2b_1', 'a2b', a, a, b], // w,h,d
+                    ['a2b_2', 'a2b', a, b, a],
+                    ['a2b_3', 'a2b', b, a, a],
+                    ['ab2_1', 'ab2', a, b, b],
+                    ['ab2_2', 'ab2', b, a, b],
+                    ['ab2_3', 'ab2', b, b, a]
+                ];
+
+                const pieces = piecesData.map(p => createCubePiece(...p));
+                
+                // Position the pieces to form the (a+b) cube
+                // These are 2D transforms to place the 2.5D pieces
+                // We'll build from the 'back' (z=0) forward
+                // And from 'bottom' (y=0) up
+                // And from 'left' (x=0) right
+                // (x, y, z) positioning logic
+                const positions = {
+                    // Back layer (z=0, controlled by d)
+                    'a3':    { x: b, y: b, z: b, transform: `translate3d(${b}px, ${-b}px, ${b}px)`},
+                    'a2b_2': { x: b, y: 0, z: b, transform: `translate3d(${b}px, ${0}px, ${b}px)`},
+                    'a2b_3': { x: 0, y: b, z: b, transform: `translate3d(${0}px, ${-b}px, ${b}px)`},
+                    'ab2_2': { x: 0, y: 0, z: b, transform: `translate3d(${0}px, ${0}px, ${b}px)`},
+                    
+                    // Front layer (z=b)
+                    'a2b_1': { x: b, y: b, z: 0, transform: `translate3d(${b}px, ${-b}px, ${0}px)`},
+                    'ab2_1': { x: b, y: 0, z: 0, transform: `translate3d(${b}px, ${0}px, ${0}px)`},
+                    'ab2_3': { x: 0, y: b, z: 0, transform: `translate3d(${0}px, ${-b}px, ${0}px)`},
+                    'b3':    { x: 0, y: 0, z: 0, transform: `translate3d(${0}px, ${0}px, ${0}px)`},
+                };
+                
+                // Calculate z-index to stack properly
+                // Higher x, y, z should be "on top"
+                // This is the key to fixing the overlap!
+                const zSort = (p) => {
+                    const pos = positions[p.id];
+                    // Simple z-index sort based on 3D coordinates
+                    return (pos.x * 10) + (pos.y * 5) + (pos.z * 1);
+                };
+
+                pieces.forEach(p => {
+                    p.style.transform = positions[p.id].transform;
+                    p.style.zIndex = zSort(p); // Set z-index
+                    scene.appendChild(p);
+                });
+                
+                // Set initial scale
+                getSceneScale();
+
+                // Update explosion transforms
+                updateExplosionCSS(a + b);
+            }
+
+            /**
+             * Generates the CSS for the 'exploded' state
+             */
+            function updateExplosionCSS(totalSize) {
+                const oldStyle = document.getElementById('explosion-style');
+                if (oldStyle) oldStyle.remove();
+                
+                const offset = totalSize * 0.4; // How far to explode
+                
+                // Exploded positions (2D transforms)
+                const explosionTransforms = {
+                    'a3':    `translate3d(${b + offset}px, ${-b - offset}px, ${b + offset}px)`,
+                    'a2b_2': `translate3d(${b + offset}px, ${0 + offset}px, ${b + offset}px)`,
+                    'a2b_3': `translate3d(${0 - offset}px, ${-b - offset}px, ${b + offset}px)`,
+                    'ab2_2': `translate3d(${0 - offset}px, ${0 + offset}px, ${b + offset}px)`,
+                    
+                    'a2b_1': `translate3d(${b + offset}px, ${-b - offset}px, ${0 - offset}px)`,
+                    'ab2_1': `translate3d(${b + offset}px, ${0 + offset}px, ${0 - offset}px)`,
+                    'ab2_3': `translate3d(${0 - offset}px, ${-b - offset}px, ${0 - offset}px)`,
+                    'b3':    `translate3d(${0 - offset}px, ${0 + offset}px, ${0 - offset}px)`
+                };
+                
+                let css = '';
+                for (const id in explosionTransforms) {
+                    css += `.exploded #${id} { transform: ${explosionTransforms[id]} !important; }\n`;
+                }
+                
+                const styleSheet = document.createElement("style");
+                styleSheet.id = 'explosion-style';
+                styleSheet.innerText = css;
+                document.head.appendChild(styleSheet);
+            }
+
+            // --- Interactive Step Logic ---
+
+            const simulationSteps = [
+                { // Step 0: Initial
+                    text: "This is the full cube, representing <span class='formula'>(a + b)<sup>3</sup></span>. <strong>Click the cube</strong> to see the 8 pieces it's made of!",
+                    highlight: [], // Highlight nothing
+                    clickTarget: 'scene' // User can click anywhere on the cube
+                },
+                { // Step 1: Exploded, find a3
+                    text: "Great! The cube is made of 8 smaller blocks. Let's find them. <strong>Click the big blue <span class='formula'>a<sup>3</sup></span> block.</strong>",
+                    highlight: ['a3'],
+                    clickTarget: 'a3'
+                },
+                { // Step 2: Found a3, find b3
+                    text: "Perfect! That's the <span class='formula'>a<sup>3</sup></span> block (volume a &times; a &times; a). Now, <strong>click the small orange <span class='formula'>b<sup>3</sup></span> block.</strong>",
+                    highlight: ['b3'],
+                    clickTarget: 'b3',
+                    found: ['a3']
+                },
+                { // Step 3: Found b3, find a2b
+                    text: "Excellent! That's the <span class='formula'>b<sup>3</sup></span> block (volume b &times; b &times; b). Next, let's find the a²b blocks. <strong>Click one of the 3 teal-colored <span class='formula'>a<sup>2</sup>b</span> blocks.</strong>",
+                    highlight: ['a2b_1', 'a2b_2', 'a2b_3'],
+                    clickTarget: 'a2b',
+                    found: ['a3', 'b3']
+                },
+                { // Step 4: Found a2b, find ab2
+                    text: "You found them! There are 3 <span class='formula'>a<sup>2</sup>b</span> blocks. Their total volume is <span class='formula'>3a<sup>2</sup>b</span>. Finally, <strong>click one of the 3 green <span class='formula'>ab<sup>2</sup></span> blocks.</strong>",
+                    highlight: ['ab2_1', 'ab2_2', 'ab2_3'],
+                    clickTarget: 'ab2',
+                    found: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3']
+                },
+                { // Step 5: Found ab2, Conclusion
+                    text: "Fantastic! There are 3 <span class='formula'>ab<sup>2</sup></span> blocks. Their total volume is <span class='formula'>3ab<sup>2</sup></span>. You've found all 8 pieces!",
+                    highlight: [],
+                    clickTarget: null, // No more clicking
+                    found: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                },
+                { // Step 6: Final formula
+                    text: "By adding all the pieces, we prove the identity: <br> <span class='formula'>(a + b)<sup>3</sup> = a<sup>3</sup> + 3a<sup>2</sup>b + 3ab<sup>2</sup> + b<sup>3</sup></span>. <br><br><strong>Click 'Reset' to explore again!</strong>",
+                    highlight: [],
+                    clickTarget: null,
+                    found: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                }
+            ];
+
+            function setStep(stepIndex) {
+                currentStep = stepIndex;
+                const step = simulationSteps[stepIndex];
+                
+                if (!step) return;
+
+                // Update instruction text
+                instructionText.innerHTML = step.text;
+                
+                // Explode cube on step 1
+                if (stepIndex === 1 && !isExploded) {
+                    document.body.classList.add('exploded');
+                    isExploded = true;
+                }
+                
+                // Reassemble cube if step 0
+                if (stepIndex === 0 && isExploded) {
+                    document.body.classList.remove('exploded');
+                    isExploded = false;
+                }
+
+                // Update highlights
+                document.querySelectorAll('.cube-piece').forEach(piece => {
+                    piece.classList.remove('highlight');
+                    piece.classList.remove('found');
+                    
+                    const id = piece.id;
+                    const cssClass = piece.classList.contains('a2b') ? 'a2b' : (piece.classList.contains('ab2') ? 'ab2' : '');
+
+                    if (step.highlight.includes(id) || step.highlight.includes(cssClass)) {
+                        piece.classList.add('highlight');
+                    }
+                    
+                    if (step.found && (step.found.includes(id) || step.found.includes(cssClass))) {
+                        piece.classList.add('found');
+                    }
+                });
+            }
+
+            function handlePieceClick(pieceId) {
+                const step = simulationSteps[currentStep];
+                if (!step) return;
+
+                // Handle first click to explode
+                if (currentStep === 0 && (step.clickTarget === 'scene' || pieceId)) {
+                    setStep(1);
+                    return;
+                }
+
+                // Check if the click is correct
+                let target = step.clickTarget;
+                let clickedPiece = document.getElementById(pieceId);
+                
+                if (!clickedPiece) return; // Should not happen
+                
+                let isCorrectClick = false;
+                if (target === pieceId) {
+                    isCorrectClick = true;
+                } else if (target === 'a2b' && clickedPiece.classList.contains('a2b')) {
+                    isCorrectClick = true;
+                } else if (target === 'ab2' && clickedPiece.classList.contains('ab2')) {
+                    isCorrectClick = true;
+                }
+
+                if (isCorrectClick) {
+                    // Advance to next step
+                    setStep(currentStep + 1);
+                    
+                    // If we just finished, show the final step after a delay
+                    if (currentStep === 5) {
+                        setTimeout(() => {
+                            setStep(6);
+                        }, 1500); // Wait 1.5s
+                    }
+                }
+            }
+
+            function resetSimulation() {
+                setStep(0);
+            }
+
+            // --- Event Handlers ---
+            resetBtn.addEventListener('click', resetSimulation);
+            
+            // Re-run buildCube on window resize to adjust scale
+            window.addEventListener('resize', () => {
+                getSceneScale();
+            });
+
+            // --- Initial Setup ---
+            buildCube();
+            setStep(0);
+        });
+    </script>
+</body>
+</html>
+
+
+
+
+
+

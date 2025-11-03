@@ -1,0 +1,887 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanya Sampoorna Project 3.0 - (a+b)^3 3D Simulation</title>
+    
+    <!-- Reverted to CDN links to fix preview error. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+
+    <style>
+        /* * UI/UX Overhaul based on user-provided image.
+         * Colors, fonts, and layout are updated to match the project's visual identity.
+         * three.js canvas replaces the 2.5D CSS scene.
+         */
+
+        /* Reset and Basic Setup */
+        :root {
+            --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            
+            /* Project-specific colors */
+            --color-header-bg: #00558C; /* Dark Blue */
+            --color-header-text: #FFFFFF;
+            --color-page-bg: #F0F4F8; /* Light blue-grey */
+            --color-panel-bg: #FFFFFF;
+            --color-text-main: #333333;
+            --color-text-secondary: #555555;
+            --color-heading: #00558C;
+            
+            --color-btn-reset: #E74C3C; /* Red */
+            --color-btn-reset-hover: #C0392B;
+            --color-btn-menu: #007BFF; /* Blue */
+            --color-btn-menu-hover: #0056b3;
+            --color-instruction-highlight: #007BFF;
+
+            /* Piece colors - three.js will use these hex values */
+            --color-a3: 0x007bff; /* a*a*a - Blue */
+            --color-b3: 0xfd7e14; /* b*b*b - Orange */
+            --color-a2b: 0x17a2b8; /* a*a*b - Teal */
+            --color-ab2: 0x28a745; /* a*b*b - Green */
+
+            --shadow-md: 0 4px 10px rgba(0,0,0,0.08);
+            --border-radius: 8px;
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            height: 100%;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--color-page-bg);
+            color: var(--color-text-main);
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        header {
+            background-color: var(--color-header-bg);
+            color: var(--color-header-text);
+            text-align: center;
+            padding: 1rem 1.5rem;
+            width: 100%;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+
+        header h1 {
+            font-size: clamp(1.1rem, 3vw, 1.5rem);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        header h2 {
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            opacity: 0.9;
+        }
+
+        header p {
+            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            font-weight: 600;
+            opacity: 0.8;
+        }
+
+        /* Main Content Wrapper */
+        .content-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin: 1.5rem auto;
+            padding: 0 1.5rem;
+            flex-grow: 1;
+        }
+        
+        /* Main simulation panel */
+        .simulation-container {
+            background-color: var(--color-panel-bg);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+        }
+        
+        /* Title and Buttons Bar */
+        .title-bar {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .identity-title {
+            color: var(--color-heading);
+        }
+        
+        .identity-title h3 {
+            font-size: clamp(1.2rem, 3vw, 1.75rem);
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .identity-title p {
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--color-text-secondary);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .btn {
+            font-family: var(--font-main);
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.6rem 1.25rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            color: white;
+            text-decoration: none; /* Add this to ensure links look like buttons */
+        }
+        
+        #reset-btn {
+            background-color: var(--color-btn-reset);
+        }
+        #reset-btn:hover {
+            background-color: var(--color-btn-reset-hover);
+        }
+        
+        #menu-btn {
+            background-color: var(--color-btn-menu);
+        }
+        #menu-btn:hover {
+            background-color: var(--color-btn-menu-hover);
+        }
+        
+        /* Main simulation area */
+        .simulation-body {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+        }
+
+        /* 3D Scene Container */
+        .scene-container {
+            width: 100%;
+            min-height: 400px;
+            padding: 0; /* Remove padding */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #eef5fb, #ffffff);
+            flex: 2; /* Takes more space */
+        }
+
+        /* This is the canvas three.js will render to */
+        #scene-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+            cursor: pointer; /* Indicate the whole canvas is clickable */
+        }
+        
+        /* Instructions Panel */
+        #instructions-panel {
+            flex: 1; /* Takes less space */
+            padding: 1.5rem;
+            background-color: #fafcff;
+            border-top: 1px solid #e0e0e0;
+            min-height: 150px;
+        }
+        
+        #instructions-panel h4 {
+            color: var(--color-heading);
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        
+        #instruction-text {
+            font-size: 1.1rem;
+            line-height: 1.7;
+            color: var(--color-text-secondary);
+        }
+        
+        #instruction-text strong {
+            color: var(--color-instruction-highlight);
+            font-weight: 600;
+        }
+        
+        #instruction-text .formula {
+            font-family: "Courier New", Courier, monospace;
+            font-weight: bold;
+            color: var(--color-header-bg);
+            background-color: #eaf4ff;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            white-space: nowrap;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--color-header-bg);
+            color: var(--color-header-text);
+            text-align: center;
+            padding: 1rem;
+            width: 100%;
+            font-size: 0.9rem;
+            font-weight: 600;
+            opacity: 0.9;
+            margin-top: 1.5rem;
+        }
+
+        /* Responsive Layout */
+        @media (min-width: 900px) {
+            .simulation-body {
+                flex-direction: row;
+            }
+            #instructions-panel {
+                border-top: none;
+                border-left: 1px solid #e0e0e0;
+            }
+            .scene-container {
+                min-height: 500px; /* Taller on desktop */
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .content-wrapper {
+                padding: 0.5rem;
+                margin: 0.5rem auto;
+            }
+            .title-bar {
+                flex-direction: column;
+                gap: 1rem;
+                padding: 1rem;
+            }
+            .button-group {
+                width: 100%;
+            }
+            .btn {
+                flex-grow: 1;
+                width: 50%;
+            }
+            .scene-container {
+                padding: 0;
+                min-height: 300px;
+            }
+            #instructions-panel {
+                padding: 1rem;
+            }
+            #instruction-text {
+                font-size: 1rem;
+            }
+            header, footer {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <h2>The project is supported by TITAN and implemented by KALIKE</h2>
+        <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
+    </header>
+
+    <div class="content-wrapper">
+        <div class="simulation-container">
+            
+            <div class="title-bar">
+                <div class="identity-title">
+                    <h3>Cube of a Sum</h3>
+                    <p>(a + b)<sup>3</sup> = a<sup>3</sup> + 3a<sup>2</sup>b + 3ab<sup>2</sup> + b<sup>3</sup></p>
+                </div>
+                <div class="button-group">
+                    <button class="btn" id="reset-btn">Reset</button>
+                    <a href="index.html" class="btn" id="menu-btn">Back to Menu</a>
+                </div>
+            </div>
+
+            <div class="simulation-body">
+                <!-- 3D Scene -->
+                <div class="scene-container" id="scene-container">
+                    <!-- three.js will render to this canvas -->
+                    <canvas id="scene-canvas"></canvas>
+                </div>
+
+                <!-- Instructions Panel -->
+                <div id="instructions-panel">
+                    <h4>Step-by-Step Instructions</h4>
+                    <div id="instruction-text">
+                        Welcome! Let's build the identity for <span class="formula">(a + b)³</span>.
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        Powered by AI and created by Kalike: An initiative of Tata Trusts.
+    </footer>
+
+    <!-- All JavaScript is embedded here for offline use -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // --- Element References ---
+            const instructionText = document.getElementById('instruction-text');
+            const resetBtn = document.getElementById('reset-btn');
+            const canvas = document.getElementById('scene-canvas');
+            const container = document.getElementById('scene-container');
+
+            // --- Simulation State ---
+            let a = 6; // 'a' dimension
+            let b = 3; // 'b' dimension
+            let totalSize = a + b;
+            let currentStep = 0;
+            const pieceMeshes = []; // To store our 8 THREE.Mesh objects
+            const pieceMaterials = {}; // To store original materials
+
+            // --- Define colors object ---
+            const colors = {
+                a3: 0x007bff,
+                b3: 0xfd7e14,
+                a2b: 0x17a2b8,
+                ab2: 0x28a745,
+                highlight: 0xffff00 // Yellow glow for highlight
+            };
+            
+            // --- three.js Scene Setup ---
+            let scene, camera, renderer, controls, raycaster, mouse, pointerDownPosition;
+
+            /**
+             * Creates a main text label as a THREE.Sprite
+             */
+            function createLabelSprite(text) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const fontSize = 40; // High-res for texture
+                context.font = `Bold ${fontSize}px Arial`;
+                
+                const metrics = context.measureText(text);
+                const textWidth = metrics.width;
+                
+                canvas.width = textWidth;
+                canvas.height = fontSize * 1.2;
+                
+                context.font = `Bold ${fontSize}px Arial`;
+                context.fillStyle = 'rgba(0, 0, 0, 0.9)'; // Dark text
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                
+                context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+
+                const material = new THREE.SpriteMaterial({
+                    map: texture,
+                    transparent: true,
+                    depthTest: true,
+                    opacity: 0 // Start invisible
+                });
+
+                const sprite = new THREE.Sprite(material);
+                
+                const spriteHeight = 1.5; 
+                const spriteWidth = (canvas.width / canvas.height) * spriteHeight;
+                sprite.scale.set(spriteWidth, spriteHeight, 1);
+
+                return sprite;
+            }
+            
+            /**
+             * NEW: Creates a dimension label ('a' or 'b') with a specific color
+             */
+            function createDimensionLabelSprite(text, colorHex) {
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                const fontSize = 36; // Slightly smaller
+                context.font = `Bold ${fontSize}px Arial`;
+                
+                const metrics = context.measureText(text);
+                const textWidth = metrics.width;
+                
+                canvas.width = textWidth + 10; // Add a little padding
+                canvas.height = fontSize * 1.2;
+                
+                const colorString = '#' + new THREE.Color(colorHex).getHexString();
+
+                context.font = `Bold ${fontSize}px Arial`;
+                context.fillStyle = colorString;
+                context.textAlign = 'center';
+                context.textBaseline = 'middle';
+                
+                context.fillText(text, canvas.width / 2, canvas.height / 2);
+
+                const texture = new THREE.CanvasTexture(canvas);
+                texture.needsUpdate = true;
+
+                const material = new THREE.SpriteMaterial({
+                    map: texture,
+                    transparent: true,
+                    depthTest: true,
+                    opacity: 0 // Start invisible
+                });
+
+                const sprite = new THREE.Sprite(material);
+                
+                const spriteHeight = 1.0; // Make dimension labels smaller
+                const spriteWidth = (canvas.width / canvas.height) * spriteHeight;
+                sprite.scale.set(spriteWidth, spriteHeight, 1);
+
+                return sprite;
+            }
+
+
+            function initThree() {
+                // Scene
+                scene = new THREE.Scene();
+                scene.background = new THREE.Color(0xf0f4f8);
+
+                // Camera
+                const fov = 60;
+                const aspect = container.clientWidth / container.clientHeight;
+                const near = 0.1;
+                const far = 1000;
+                camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+                // NEW: Start with a flat, 2D-like front view as requested
+                camera.position.set(0, 0, totalSize * 3); // (a+b) * 3 = 27
+    
+                // Lights
+                const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+                scene.add(ambientLight);
+                const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+                directionalLight.position.set(10, 20, 15);
+                scene.add(directionalLight);
+
+                // Renderer
+                renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+                renderer.setSize(container.clientWidth, container.clientHeight);
+                renderer.setPixelRatio(window.devicePixelRatio);
+
+                // Controls
+                controls = new THREE.OrbitControls(camera, renderer.domElement);
+                controls.enableDamping = true;
+                controls.dampingFactor = 0.1;
+                controls.target.set(0, 0, 0); // Target the center of the cube
+
+                // Raycaster for clicking
+                raycaster = new THREE.Raycaster();
+                mouse = new THREE.Vector2();
+                pointerDownPosition = new THREE.Vector2();
+
+                // Build the cube
+                buildCube();
+
+                // Start animation loop
+                animate();
+            }
+            
+            /**
+             * MODIFICATION: Creates all 8 pieces, their main labels, AND their dimension labels
+             * Labels are now parented to the mesh.
+             */
+            function buildCube() {
+                // Clear old meshes
+                pieceMeshes.forEach(mesh => scene.remove(mesh));
+                pieceMeshes.length = 0;
+                
+                const createMat = (color) => new THREE.MeshStandardMaterial({
+                    color: color,
+                    transparent: true,
+                    opacity: 0 // Start invisible
+                });
+                
+                pieceMaterials.a3 = createMat(colors.a3);
+                pieceMaterials.b3 = createMat(colors.b3);
+                pieceMaterials.a2b = createMat(colors.a2b);
+                pieceMaterials.ab2 = createMat(colors.ab2);
+
+                // Piece definitions: [id, group, mainLabel, [dimX, dimY, dimZ], geometry, material, assembled_position]
+                const halfA = a / 2;
+                const halfB = b / 2;
+                
+                const piecesData = [
+                    // a3
+                    ['a3', 'a3', 'a³', ['a', 'a', 'a'], new THREE.BoxGeometry(a, a, a), pieceMaterials.a3, { x: halfB, y: halfB, z: -halfB }],
+                    // b3
+                    ['b3', 'b3', 'b³', ['b', 'b', 'b'], new THREE.BoxGeometry(b, b, b), pieceMaterials.b3, { x: -halfA, y: -halfA, z: halfA }],
+                    
+                    // a2b (a, a, b)
+                    ['a2b_1', 'a2b', 'a²b', ['a', 'a', 'b'], new THREE.BoxGeometry(a, a, b), pieceMaterials.a2b, { x: halfB, y: halfB, z: halfA }],
+                    // a2b (a, b, a)
+                    ['a2b_2', 'a2b', 'a²b', ['a', 'b', 'a'], new THREE.BoxGeometry(a, b, a), pieceMaterials.a2b, { x: halfB, y: -halfA, z: -halfB }],
+                    // a2b (b, a, a)
+                    ['a2b_3', 'a2b', 'a²b', ['b', 'a', 'a'], new THREE.BoxGeometry(b, a, a), pieceMaterials.a2b, { x: -halfA, y: halfB, z: -halfB }],
+                    
+                    // ab2 (a, b, b)
+                    ['ab2_1', 'ab2', 'ab²', ['a', 'b', 'b'], new THREE.BoxGeometry(a, b, b), pieceMaterials.ab2, { x: halfB, y: -halfA, z: halfA }],
+                    // ab2 (b, a, b)
+                    ['ab2_2', 'ab2', 'ab²', ['b', 'a', 'b'], new THREE.BoxGeometry(b, a, b), pieceMaterials.ab2, { x: -halfA, y: halfB, z: halfA }],
+                    // ab2 (b, b, a)
+                    ['ab2_3', 'ab2', 'ab²', ['b', 'b', 'a'], new THREE.BoxGeometry(b, b, a), pieceMaterials.ab2, { x: -halfA, y: -halfA, z: -halfB }]
+                ];
+
+                piecesData.forEach(([id, group, mainLabelText, dims, geo, mat, pos]) => {
+                    const assembledPos = new THREE.Vector3(pos.x, pos.y, pos.z);
+                    const explodedPos = new THREE.Vector3(pos.x, pos.y, pos.z).multiplyScalar(2.0);
+
+                    const mesh = new THREE.Mesh(geo, mat);
+                    mesh.name = id;
+                    mesh.userData = { 
+                        id: id, // Store individual ID
+                        group: group,
+                        assembledPosition: assembledPos,
+                        explodedPosition: explodedPos,
+                   };
+                   // Start at the exploded position, completely invisible.
+                    mesh.position.copy(mesh.userData.explodedPosition); 
+                    pieceMeshes.push(mesh);
+                    scene.add(mesh);
+
+                    // --- Create MAIN label (e.g., a³) ---
+                    if (mainLabelText) {
+                        const label = createLabelSprite(mainLabelText);
+                        const size = geo.parameters;
+                        const yOffset = size.height / 2 + 1.2;
+                        
+                        // Set local position
+                        label.position.set(0, yOffset, 0); 
+                        
+                        label.userData = {
+                            id: id, // Store individual ID
+                            group: group,
+                            isDimensionLabel: false // Mark as main label
+                        };
+                        mesh.add(label); // PARENT TO MESH
+                    }
+                    
+                    // --- NEW: Create DIMENSION labels (a, b, b) ---
+                    const [dimX, dimY, dimZ] = dims;
+                    const { width, height, depth } = geo.parameters;
+                    const dimLabelOffset = 0.8; // How far from the edge
+                    const dimLabels = [];
+
+                    // Label for X dimension (along Z edge)
+                    const labelX = createDimensionLabelSprite(dimX, dimX === 'a' ? colors.a3 : colors.b3);
+                    // Set local position
+                    labelX.position.set(0, -height / 2 - dimLabelOffset, -depth / 2 - dimLabelOffset);
+                    dimLabels.push(labelX);
+
+                    // Label for Y dimension (along X edge)
+                    const labelY = createDimensionLabelSprite(dimY, dimY === 'a' ? colors.a3 : colors.b3);
+                    // Set local position
+                    labelY.position.set(-width / 2 - dimLabelOffset, 0, -depth / 2 - dimLabelOffset);
+                    dimLabels.push(labelY);
+
+                    // Label for Z dimension (along Y edge)
+                    const labelZ = createDimensionLabelSprite(dimZ, dimZ === 'a' ? colors.a3 : colors.b3);
+                    // Set local position
+                    labelZ.position.set(-width / 2 - dimLabelOffset, -height / 2 - dimLabelOffset, 0);
+                    dimLabels.push(labelZ);
+
+                    dimLabels.forEach(label => {
+                        label.userData = {
+                            id: id, // Store individual ID
+                            group: group,
+                            isDimensionLabel: true // Mark as dimension label
+                        };
+                        mesh.add(label); // PARENT TO MESH
+                    });
+
+                });
+            }
+
+
+            /**
+             * Main animation loop
+             */
+            function animate() {
+                requestAnimationFrame(animate);
+                controls.update(); // Update orbit controls
+                renderer.render(scene, camera);
+            }
+
+            /**
+             * Handle window resizing
+             */
+            function onWindowResize() {
+                const w = container.clientWidth;
+                const h = container.clientHeight;
+                
+                if (h === 0) return; // Avoid division by zero if container is hidden
+
+                camera.aspect = w / h;
+                camera.updateProjectionMatrix();
+                renderer.setSize(w, h);
+            }
+
+            // --- NEW: Interactive Step Logic (8-step build + Merge/Unmerge) ---
+
+            const simulationSteps = [
+                { // Step 0: Initial (empty scene)
+                    text: `Let's build the identity for <span class='formula'>(a + b)³</span>. <strong>Click the scene</strong> to add the first piece.`,
+                    action: 'initial',
+                    show: []
+                },
+                { // Step 1: Add a³
+                    text: `This is the <span class='formula'>a³</span> block. <strong>Click again</strong> to add the next piece.`,
+                    action: 'exploded',
+                    show: ['a3']
+                },
+                { // Step 2: Add b³
+                    text: `Next is the <span class='formula'>b³</span> block. <strong>Click</strong> to add the next piece.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3']
+                },
+                { // Step 3: Add a²b_1
+                    text: `Here is the first <span class='formula'>a²b</span> block. <strong>Click</strong> to add the next one.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1']
+                },
+                { // Step 4: Add a²b_2
+                    text: `This is the second <span class='formula'>a²b</span> block. <strong>Click</strong> to add the last one.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2']
+                },
+                 { // Step 5: Add a²b_3
+                    text: `We now have all three <span class='formula'>a²b</span> blocks. <strong>Click</strong> to add the next group.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3']
+                },
+                { // Step 6: Add ab²_1
+                    text: `Here is the first <span class='formula'>ab²</span> block. <strong>Click</strong> for the next one.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1']
+                },
+                { // Step 7: Add ab²_2
+                    text: `This is the second <span class='formula'>ab²</span> block. <strong>Click</strong> for the final piece.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2']
+                },
+                { // Step 8: Add ab²_3 (All 8 are visible)
+                    text: `We have all 8 pieces! (<span class='formula'>a³</span>, <span class='formula'>b³</span>, 3 <span class='formula'>a²b</span>, and 3 <span class='formula'>ab²</span>). <strong>Click to assemble them.</strong>`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                },
+                { // Step 9: Assemble the cube
+                    text: `All 8 pieces fit together to form the <span class='formula'>(a + b)³</span> cube! <strong>Click to unmerge</strong> the pieces.`,
+                    action: 'assemble',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                },
+                { // Step 10: Unmerge (Explode)
+                    text: `Here are the 8 pieces again. <strong>Click to re-assemble</strong>.`,
+                    action: 'exploded',
+                    show: ['a3', 'b3', 'a2b_1', 'a2b_2', 'a2b_3', 'ab2_1', 'ab2_2', 'ab2_3']
+                }
+            ];
+
+            /**
+             * NEW: Refactored setStep logic
+             * - Animates pieces sequentially (piece first, then labels) to avoid confusion.
+             * - More explicit logic for new, hidden, and existing pieces.
+             */
+            function setStep(stepIndex) {
+                const prevStep = simulationSteps[currentStep]; // <-- Get the *actual* current step first
+                currentStep = stepIndex; // <-- Now update currentStep
+                const step = simulationSteps[stepIndex];
+                
+                if (!step) return;
+
+                // Update instruction text
+                instructionText.innerHTML = step.text;
+                
+                // Animation parameters
+                const posDuration = 1.2;
+                const posEase = "power3.out";
+                
+                // Use Sets for efficient lookup
+                const showIDs = new Set(step.show);
+                const action = step.action;
+                // const prevStep = simulationSteps[stepIndex - 1]; // <-- This was the bug
+                const prevShowIDs = new Set(prevStep ? prevStep.show : []); // <-- This is correct
+ 
+                // Animate Pieces
+                pieceMeshes.forEach(mesh => {
+                    const pieceID = mesh.userData.id;
+                    const isShown = showIDs.has(pieceID);
+                    const wasShown = prevShowIDs.has(pieceID);
+                    
+                    const isNew = isShown && !wasShown;
+                    const isFadingOut = !isShown && wasShown;
+                    const isStayingVisible = isShown && wasShown;
+                    
+                    let targetPosition;
+                    
+                    // --- 1. Handle Position Animation ---
+                    if (isShown) {
+                        // All visible pieces move to their target (assembled or exploded)
+                        targetPosition = (action === 'assemble') 
+                            ? mesh.userData.assembledPosition 
+                            : mesh.userData.explodedPosition;
+                        
+                        gsap.to(mesh.position, {
+                            x: targetPosition.x,
+                            y: targetPosition.y,
+                            z: targetPosition.z,
+                            duration: posDuration,
+                            ease: posEase
+                        });
+                    } else if (isFadingOut) {
+                        // Fading out: move back to exploded position
+                        targetPosition = mesh.userData.explodedPosition;
+                         gsap.to(mesh.position, {
+                            x: targetPosition.x,
+                            y: targetPosition.y,
+                            z: targetPosition.z,
+                            duration: posDuration / 2, // Faster hide
+                            ease: posEase
+                        });
+                    }
+                    // else (not shown, wasn't shown): Do nothing, it's already at exploded pos.
+
+                    // --- 2. Handle Opacity Animation (NEW LOGIC) ---
+                    if (isNew) {
+                        // *** MODIFIED AGAIN: PIECE AND LABELS APPEAR INSTANTLY. NO FADE. ***
+                        
+                        // Stop any running animations on this mesh's materials
+                        gsap.killTweensOf(mesh.material);
+                        mesh.children.forEach(label => {
+                            gsap.killTweensOf(label.material);
+                        });
+
+                        // Set opacity directly to 1
+                        mesh.material.opacity = 1.0;
+                        
+                        // Also set all labels' opacity directly to 1
+                        mesh.children.forEach(label => {
+                            // During the build phase (action='exploded'), all labels should be visible
+                            label.material.opacity = 1.0; 
+                        });
+                        
+                    } else if (isFadingOut) {
+                        // Fade out piece and labels together
+                        gsap.to(mesh.material, { opacity: 0.0, duration: 0.5 });
+                        mesh.children.forEach(label => {
+                            gsap.to(label.material, { opacity: 0.0, duration: 0.5 });
+                        });
+                    } else if (isStayingVisible) {
+                        // Piece is already visible, just update labels for assemble/explode
+                        mesh.children.forEach(label => {
+                            const isDim = label.userData.isDimensionLabel;
+                            let targetOpacity = 1.0; // Default for 'exploded'
+                            
+                            if (action === 'assemble') {
+                                targetOpacity = isDim ? 0.0 : 1.0; // Hide dim, show main
+                            }
+                            
+                            // Animate labels to match the piece's movement duration
+                            gsap.to(label.material, { 
+                                opacity: targetOpacity, 
+                                duration: posDuration, // Sync with piece movement
+                                ease: posEase
+                            });
+                        });
+                    }
+                    // else (not shown, wasn't shown): Do nothing, opacity is already 0.
+                });
+            }
+
+
+            /**
+             * Stores the starting position of a touch/click
+             */
+            function handleCanvasPointerDown(event) {
+                pointerDownPosition.set(event.clientX, event.clientY);
+            }
+
+            /**
+             * NEW: Handles pointer events (touch and mouse) on UP
+             * Advances steps, and loops between step 9 and 10
+             */
+            function handleCanvasPointerUp(event) {
+                const pointerUpPosition = new THREE.Vector2(event.clientX, event.clientY);
+                const distance = pointerDownPosition.distanceTo(pointerUpPosition);
+                const tapTolerance = 15; // 15 pixels
+
+                if (distance > tapTolerance) {
+                    return; // This was a drag, not a tap
+                }
+
+                // --- This was a tap! ---
+                
+                // NEW LOOPING LOGIC
+                if (currentStep === 9) {
+                    setStep(10); // Go from assemble to explode
+                } else if (currentStep === 10) {
+                    setStep(9); // Go from explode to assemble
+                } else if (currentStep < 9) {
+                    // This is the build-up phase
+                    setStep(currentStep + 1);
+                }
+                // If currentStep > 10 (e.g., at end), loop back
+                else if (currentStep > 10) {
+                     setStep(9); // Or loop back to assemble
+                }
+            }
+
+
+            function resetSimulation() {
+                setStep(0);
+                
+                // Also reset camera
+                gsap.to(camera.position, {
+                   x: 0,
+                   y: 0,
+                   z: totalSize * 3,
+                   duration: 1.0,
+                   ease: "power3.out"
+                });
+                 gsap.to(controls.target, {
+                   x: 0,
+                   y: 0,
+                   z: 0,
+                   duration: 1.0,
+                   ease: "power3.out"
+                });
+            }
+
+            // --- Event Handlers ---
+            resetBtn.addEventListener('click', resetSimulation);
+            window.addEventListener('resize', onWindowResize);
+            
+            canvas.addEventListener('pointerdown', handleCanvasPointerDown);
+            canvas.addEventListener('pointerup', handleCanvasPointerUp);
+
+            // --- Initial Setup ---
+            initThree();
+            setStep(0); // Start at the beginning
+            
+            // Initial resize call in case container size is set by CSS
+            onWindowResize();
+        });
+    </script>
+</body>
+</html>

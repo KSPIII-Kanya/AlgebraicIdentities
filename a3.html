@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanya Sampoorna Project - (a² - b²) Simulation</title>
+    <style>
+        /* * =================================
+         * GLOBAL STYLES
+         * =================================
+         */
+        :root {
+            --header-height: 120px;
+            --footer-height: 50px;
+            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            --color-primary: #005A9C;
+            --color-secondary: #00A9E0;
+            --color-accent: #FFC425;
+            --color-success: #4CAF50;
+            --color-error: #F44336;
+            --color-text-light: #FFFFFF;
+            --color-text-dark: #333333;
+            --color-bg-light: #F4F9FF;
+            --color-bg-white: #FFFFFF;
+            --color-border: #DDDDDD;
+
+            /* Simulation Colors */
+            --color-a-sq: #2E86C1;
+            /* Blue */
+            --color-b-sq: #E74C3C;
+            /* Red */
+            --color-c-sq: #2ECC71;
+            /* Green */
+            --color-ab: #F39C12;
+            /* Orange */
+            --color-bc: #9B59B6;
+            /* Purple */
+            --color-ac: #1ABC9C;
+            /* Teal */
+            --color-guide: rgba(255, 196, 37, 0.7);
+            /* Yellow */
+            --color-guide-border: #FFC425;
+            --color-highlight: rgba(76, 175, 80, 0.5); /* Semi-transparent Green */
+            --color-highlight-border: #4CAF50;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+            width: 100%;
+            font-family: var(--font-sans);
+            background-color: var(--color-bg-light);
+            color: var(--color-text-dark);
+            overflow: hidden;
+            /* Prevents double scrollbars */
+        }
+
+        /* * =================================
+         * LAYOUT (HEADER, MAIN, FOOTER)
+         * =================================
+         */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+        }
+
+        .header {
+            width: 100%;
+            height: var(--header-height);
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            text-align: center;
+            padding: 1rem;
+            flex-shrink: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            line-height: 1.4;
+        }
+
+        .header h1 {
+            font-size: clamp(1.2rem, 3.5vw, 1.8rem);
+            margin: 0;
+        }
+
+        .header p {
+            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
+            margin: 0;
+        }
+
+        .main-content {
+            width: 100%;
+            /* This is the main scrolling area */
+            flex-grow: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1.5rem;
+            display: block;
+            /* Default state */
+        }
+
+        .footer {
+            width: 100%;
+            height: var(--footer-height);
+            background-color: var(--color-primary);
+            color: var(--color-text-light);
+            text-align: center;
+            padding: 1rem;
+            flex-shrink: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: clamp(0.8rem, 2vw, 1rem);
+        }
+
+        .footer p {
+            margin: 0;
+        }
+
+        /* * =================================
+         * SIMULATION VIEW
+         * =================================
+         */
+        #simulation-view {
+            width: 100%;
+            height: 100%;
+            display: none;
+            /* Hidden by default, shown by JS */
+            flex-direction: column;
+            overflow: hidden;
+            /* Prevent internal scrolling */
+        }
+
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            /* Changed from 'center' for multi-line title */
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--color-border);
+            flex-shrink: 0;
+            gap: 1rem;
+            /* Added gap for better spacing */
+        }
+
+        .sim-header-title {
+            flex-grow: 1;
+        }
+
+        .sim-header-title h2 {
+            font-size: clamp(1.2rem, 3vw, 1.5rem);
+            color: var(--color-primary);
+            margin: 0;
+        }
+
+        .sim-header-title p {
+            font-size: 1rem;
+            font-weight: 500;
+            font-family: monospace;
+            color: var(--color-text-dark);
+            margin: 0;
+        }
+
+        .sim-header-buttons {
+            display: flex;
+            flex-shrink: 0;
+        }
+
+        .sim-button {
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+            text-decoration: none;
+            color: var(--color-text-light);
+            margin-left: 0.5rem;
+        }
+
+        .sim-button.back {
+            background-color: var(--color-secondary);
+        }
+
+        .sim-button.back:hover {
+            background-color: #008fbf;
+        }
+
+        .sim-button.reset {
+            background-color: var(--color-error);
+        }
+
+        .sim-button.reset:hover {
+            background-color: #d32f2f;
+        }
+
+        .sim-button.next {
+            background-color: var(--color-success);
+        }
+
+        .sim-button.next:hover {
+            background-color: #43A047;
+        }
+
+        .sim-body {
+            display: flex;
+            flex-grow: 1;
+            width: 100%;
+            height: 100%;
+            /* Fills remaining space */
+            overflow: hidden;
+            /* Prevents scrollbars */
+            gap: 1.5rem;
+            padding-top: 1rem;
+            flex-wrap: wrap;
+            /* Allows sidebar to wrap on small screens */
+        }
+
+        .sim-canvas-container {
+            flex-grow: 1;
+            /* Takes up available space */
+            flex-basis: 300px;
+            /* Minimum width */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 300px;
+            /* Ensures canvas is visible */
+            height: 100%;
+        }
+
+        #simulation-canvas {
+            border: 1px solid var(--color-border);
+            background-color: var(--color-bg-white);
+            max-width: 100%;
+            max-height: 100%;
+            aspect-ratio: 1.6 / 1;
+            /* Wider than tall, good for side-by-side */
+            cursor: pointer;
+        }
+
+        .sim-sidebar {
+            flex-basis: 300px;
+            /* Initial width */
+            flex-grow: 0.5;
+            flex-shrink: 0;
+            padding: 1.5rem;
+            background-color: var(--color-bg-white);
+            border-radius: 12px;
+            border: 1px solid var(--color-border);
+            overflow-y: auto;
+            /* Scrollable if content overflows */
+        }
+
+        .sim-sidebar h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+            color: var(--color-primary);
+        }
+
+        .sim-sidebar p,
+        .sim-sidebar li {
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 0.75rem; /* Consistent spacing */
+        }
+
+        .sim-sidebar ol {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem; /* Space after list */
+        }
+
+        .current-step-instruction {
+            font-weight: bold;
+            color: var(--color-primary);
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background-color: #e7f3fe;
+            border-left: 5px solid var(--color-primary);
+            border-radius: 4px;
+        }
+
+        /* Responsive adjustments for simulation view */
+        @media (max-width: 768px) {
+            .sim-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .sim-header-buttons {
+                justify-content: flex-end;
+                margin-top: 0.5rem;
+            }
+
+            .sim-body {
+                flex-direction: column;
+                overflow-y: auto;
+                /* Allow body to scroll */
+                height: auto;
+                /* Remove fixed height */
+            }
+
+            .sim-canvas-container {
+                height: auto;
+                /* Adjust height */
+                min-height: 300px;
+                /* Keep a min height */
+                flex-grow: 0;
+                /* Don't grow */
+                width: 100%;
+                /* Full width */
+            }
+
+            #simulation-canvas {
+                width: 100%;
+                height: auto;
+                aspect-ratio: 1.2 / 1;
+                /* More square-ish */
+            }
+
+            .sim-sidebar {
+                flex-basis: auto;
+                /* Auto height */
+                width: 100%;
+                /* Full width */
+                margin-top: 1rem;
+            }
+
+            .sim-header h2 {
+                font-size: 1.1rem;
+            }
+
+            .sim-button {
+                padding: 0.6rem 1rem;
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- 1. Header -->
+        <header class="header">
+            <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+            <p><strong>The project is supported by TITAN and implemented by KALIKE</strong></p>
+            <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
+        </header>
+
+        <!-- 2. Main Content (Simulation) -->
+        <main class="main-content" id="main-content-area">
+
+            <!-- Simulation View (Visible by default in this version) -->
+            <div id="simulation-view">
+                <div class="sim-header">
+                    <div class="sim-header-title">
+                        <h2 id="sim-title">Simulation Title</h2>
+                        <p id="sim-formula"></p>
+                    </div>
+                    <div class="sim-header-buttons">
+                        <button id="next-sim-button" class="sim-button next">Next</button>
+                        <button id="reset-sim-button" class="sim-button reset">Reset</button>
+                        <button id="back-to-menu-button" class="sim-button back">Back to Menu</button>
+                    </div>
+                </div>
+                <div class="sim-body">
+                    <div class="sim-canvas-container">
+                        <canvas id="simulation-canvas"></canvas>
+                    </div>
+                    <aside class="sim-sidebar">
+                        <h3 id="sim-instructions-title">How to Play</h3>
+                        <div id="sim-instructions-content">
+                            <!-- Instructions will be dynamically inserted here -->
+                        </div>
+                        <div id="current-step-text" class="current-step-instruction">
+                            <!-- Current instruction appears here -->
+                        </div>
+                    </aside>
+                </div>
+            </div>
+        </main>
+
+        <!-- 4. Footer -->
+        <footer class="footer">
+            <p><strong>Powered by AI and created by Kalike: An initiative of Tata Trusts.</strong></p>
+        </footer>
+    </div>
+
+    <script>
+        // ========================================================================
+        // GLOBAL STATE & DATA
+        // ========================================================================
+
+        // DOM Element references (DECLARED here)
+        let simView, mainContentArea, backButton, resetButton, nextButton;
+        let simTitle, simFormula, simInstructionsTitle, simInstructionsContent, currentStepText;
+        let canvas, ctx;
+
+        // Global simulation state
+        let currentSimulation = null; // Will hold the active simulation object
+
+        // ========================================================================
+        // INITIALIZATION
+        // ========================================================================
+
+        /**
+         * Initializes the application on window load.
+         * This version skips the menu and loads the (a² - b²) sim directly.
+         */
+        window.onload = () => {
+            // ASSIGN DOM elements now that the DOM is loaded
+            simView = document.getElementById('simulation-view');
+            mainContentArea = document.getElementById('main-content-area');
+            backButton = document.getElementById('back-to-menu-button');
+            resetButton = document.getElementById('reset-sim-button');
+            nextButton = document.getElementById('next-sim-button');
+            simTitle = document.getElementById('sim-title');
+            simFormula = document.getElementById('sim-formula');
+            simInstructionsTitle = document.getElementById('sim-instructions-title');
+            simInstructionsContent = document.getElementById('sim-instructions-content');
+            currentStepText = document.getElementById('current-step-text');
+            canvas = document.getElementById('simulation-canvas');
+            ctx = canvas.getContext('2d');
+
+            // --- Load the (a² - b²) Simulation Directly ---
+
+            // 1. Set titles and show menu button
+            simTitle.textContent = 'Difference of Squares';
+            simFormula.textContent = 'a² - b² = (a + b)(a - b)';
+            
+            // 2. Instantiate the simulation
+            currentSimulation = new Sim_A_Sq_Minus_B_Sq_Interactive(canvas, ctx);
+
+            // 3. Set instructions
+            simInstructionsTitle.textContent = currentSimulation.instructions.title;
+            simInstructionsContent.innerHTML = currentSimulation.instructions.steps;
+
+            // 4. Configure buttons for this "interactive-step" type sim
+            resetButton.style.display = 'inline-block';
+            nextButton.style.display = 'none'; // Hide next for puzzle/interactive
+            canvas.style.cursor = 'pointer';
+            currentStepText.style.display = 'block'; // Show step text area
+
+            // 5. Show the simulation view
+            simView.style.display = 'flex';
+            mainContentArea.style.overflow = 'hidden'; // Disable scrolling for sim view
+
+            // 6. Initialize and draw the simulation
+            currentSimulation.init();
+            currentSimulation.draw();
+
+            // 7. Add event listeners
+            resetButton.addEventListener('click', resetCurrentSimulation);
+
+            backButton.addEventListener('click', () => {
+                window.location.href = 'index.html';
+            });
+
+            window.addEventListener('resize', () => {
+                if (currentSimulation) {
+                    currentSimulation.resize();
+                    currentSimulation.draw();
+                }
+            });
+        };
+
+        /**
+         * Resets the currently active simulation.
+         */
+        function resetCurrentSimulation() {
+            if (currentSimulation) {
+                currentSimulation.init();
+                currentSimulation.draw();
+            }
+        }
+
+        // ========================================================================
+        // CLICK HANDLING UTILITY
+        // ========================================================================
+
+        /**
+         * Gets the mouse/touch coordinates relative to the canvas.
+         * @param {PointerEvent} event - The 'pointerdown' event.
+         * @returns {{x: number, y: number}} - The (x, y) coordinates on the canvas.
+         */
+        function getCanvasCoords(event) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const clientX = event.clientX;
+            const clientY = event.clientY;
+            const canvasX = (clientX - rect.left) * scaleX;
+            const canvasY = (clientY - rect.top) * scaleY;
+            return {
+                x: canvasX,
+                y: canvasY
+            };
+        }
+
+        /**
+         * Checks if a point (x, y) is inside a rectangular shape.
+         * @param {{x: number, y: number}} point - The point to check.
+         * @param {{x: number, y: number, w: number, h: number}} rect - The rectangle.
+         * @param {number} [tolerance=0] - A click tolerance buffer.
+         * @returns {boolean} - True if the point is inside.
+         */
+        function isPointInRect(point, rect, tolerance = 0) {
+            return (
+                point.x >= rect.x - tolerance &&
+                point.x <= rect.x + rect.w + tolerance &&
+                point.y >= rect.y - tolerance &&
+                point.y <= rect.y + rect.h + tolerance
+            );
+        }
+
+        /**
+         * Checks if a point is near a line segment.
+         * @param {{x: number, y: number}} point - The point to check.
+         * @param {{x1: number, y1: number, x2: number, y2: number}} line - The line segment.
+         * @param {number} tolerance - The click tolerance.
+         * @returns {boolean} - True if the point is near the line.
+         */
+        function isPointOnLine(point, line, tolerance = 10) {
+            const { x, y } = point;
+            const { x1, y1, x2, y2 } = line;
+
+            const L = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+            if (L === 0) return false; // Avoid division by zero
+            const d = Math.abs((x - x1) * (y2 - y1) - (y - y1) * (x2 - x1)) / L;
+
+            if (d > tolerance) return false;
+
+            const dot = (x - x1) * (x2 - x1) + (y - y1) * (y2 - y1);
+            if (dot < 0) return false; // Before start point
+
+            const sql = Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2);
+            if (dot > sql) return false; // After end point
+
+            return true;
+        }
+
+
+        // ========================================================================
+        // BASE SIMULATION CLASS
+        // ========================================================================
+        /**
+         * Base class for simulations.
+         */
+        class Simulation {
+            constructor(canvas, ctx) {
+                this.canvas = canvas;
+                this.ctx = ctx;
+                this.padding = 20; // Base padding
+                this.clickTolerance = 10; // 10px tolerance for easier clicking
+                this.state = {}; // Holds the simulation-specific state
+                this.instructions = {
+                    title: "Instructions",
+                    steps: "<p>Click a simulation to start.</p>"
+                };
+                this.fontSans = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif';
+
+                // Bind the event listener
+                this.handlePointerDown = this.handlePointerDown.bind(this);
+                this.canvas.addEventListener('pointerdown', this.handlePointerDown);
+            }
+
+            // Abstract methods to be overridden by child classes
+            init() {
+                throw new Error("Must override init()");
+            }
+            draw() {
+                throw new Error("Must override draw()");
+            }
+            onCanvasClick(x, y) { /* Optional to implement */ }
+
+            /**
+             * Handles the 'pointerdown' event, gets coordinates, and calls the child's click handler.
+             */
+            handlePointerDown(event) {
+                event.preventDefault(); // Prevent unwanted scrolling/zooming
+                const coords = getCanvasCoords(event);
+                this.onCanvasClick(coords.x, coords.y); // Call child's click handler
+            }
+
+            /**
+             * Removes event listeners.
+             */
+            destroy() {
+                this.canvas.removeEventListener('pointerdown', this.handlePointerDown);
+            }
+
+            /**
+             * Resizes the canvas element to fit its container while maintaining aspect ratio.
+             */
+            resize() {
+                const container = this.canvas.parentElement;
+                if (!container) return; // Guard against no parent
+
+                const containerWidth = container.clientWidth;
+                const containerHeight = container.clientHeight;
+
+                if (containerWidth === 0 || containerHeight === 0) return; // Guard against 0 size
+
+                const cssAspectRatio = window.getComputedStyle(this.canvas).aspectRatio;
+                let [arW, arH] = cssAspectRatio.split(' / ').map(Number);
+                if (isNaN(arW) || isNaN(arH) || arH === 0) {
+                    arW = 1.6;
+                    arH = 1;
+                }
+                const ratio = arW / arH;
+
+                let newWidth, newHeight;
+                if (containerWidth / containerHeight > ratio) {
+                    newHeight = containerHeight;
+                    newWidth = newHeight * ratio;
+                } else {
+                    newWidth = containerWidth;
+                    newHeight = newWidth / ratio;
+                }
+
+                // Set a fixed internal resolution
+                this.canvas.width = 800;
+                this.canvas.height = 500;
+                // Set the display size
+                this.canvas.style.width = `${newWidth}px`;
+                this.canvas.style.height = `${newHeight}px`;
+            }
+
+            /**
+             * Clears the entire canvas.
+             */
+            clearCanvas() {
+                this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+            }
+
+            /**
+             * Draws a styled piece (rectangle).
+             */
+            drawPiece(piece, isSelected = false) {
+                this.ctx.fillStyle = piece.color;
+                this.ctx.fillRect(piece.x, piece.y, piece.w, piece.h);
+
+                if (isSelected) {
+                    this.ctx.strokeStyle = '#FFC425';
+                    this.ctx.lineWidth = 4;
+                    this.ctx.strokeRect(piece.x, piece.y, piece.w, piece.h);
+                }
+
+                // Determine text color based on piece label for better contrast
+                const isDarkBg = ['b²', 'c²', 'bc', 'ac'].some(label => piece.label.includes(label));
+                this.ctx.fillStyle = isDarkBg ? 'white' : 'black';
+
+                // Adjust font size based on piece width to prevent overflow
+                let fontSize;
+                if (['ac', 'bc', 'c²'].includes(piece.label)) {
+                    // Use a larger fraction of the width for these specific labels
+                    fontSize = Math.min(30, Math.max(12, piece.w / 1.8));
+                } else {
+                    // Original logic for other labels
+                    fontSize = Math.min(30, Math.max(12, piece.w / 3));
+                }
+
+                this.ctx.font = `bold ${fontSize}px ${this.fontSans}`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(piece.label, piece.x + piece.w / 2, piece.y + piece.h / 2);
+            }
+
+
+            /**
+             * Draws a dashed guide box.
+             */
+            drawGuide(zone) {
+                this.ctx.strokeStyle = '#FFC425';
+                this.ctx.lineWidth = 3;
+                this.ctx.setLineDash([10, 10]);
+                this.ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
+                this.ctx.setLineDash([]); // Reset line dash
+            }
+            /**
+             * Draws a highlight box for interactive steps.
+             */
+            drawHighlight(zone) {
+                this.ctx.fillStyle = 'rgba(76, 175, 80, 0.3)'; // Semi-transparent Green fill
+                this.ctx.fillRect(zone.x, zone.y, zone.w, zone.h);
+                this.ctx.strokeStyle = '#4CAF50'; // Solid Green border
+                this.ctx.lineWidth = 3;
+                this.ctx.strokeRect(zone.x, zone.y, zone.w, zone.h);
+            }
+
+            /**
+             * Draws a dashed highlight line.
+             */
+            drawHighlightLine(line) {
+                this.ctx.strokeStyle = '#FFC425'; // Use the yellow guide color
+                this.ctx.lineWidth = 4;
+                this.ctx.setLineDash([10, 10]);
+                this.ctx.beginPath();
+                this.ctx.moveTo(line.x1, line.y1);
+                this.ctx.lineTo(line.x2, line.y2);
+                this.ctx.stroke();
+                this.ctx.setLineDash([]); // Reset line dash
+            }
+
+
+            /**
+             * Draws feedback text on the canvas.
+             */
+            drawFeedback(text, color, yPos) {
+                this.ctx.fillStyle = color;
+                this.ctx.font = `bold 24px ${this.fontSans}`;
+                this.ctx.textAlign = 'center';
+                this.ctx.textBaseline = 'middle';
+                this.ctx.fillText(text, this.canvas.width / 2, yPos);
+            }
+        }
+
+        // ========================================================================
+        // SIMULATION: a² - b² - NEW INTERACTIVE STEPPED PROOF
+        // ========================================================================
+        class Sim_A_Sq_Minus_B_Sq_Interactive extends Simulation {
+            constructor(canvas, ctx) {
+                super(canvas, ctx);
+                this.instructions = {
+                    title: "Prove: a² - b² = (a + b)(a - b)",
+                    steps: `
+                        <ol>
+                            <li>We will prove this step-by-step using a visual proof.</li>
+                            <li>Follow the instructions that appear below the simulation.</li>
+                            <li>Click the highlighted areas to cut and move the pieces.</li>
+                        </ol>
+                    `
+                };
+                this.stepInstructions = [
+                    "We start with a large square, a². Click the highlighted 'b²' corner to remove it.", // Step 0
+                    "Great! The L-shape is a² - b². Click the highlighted line to cut it into two pieces.", // Step 1
+                    "Good. Now, click the smaller (teal) piece to move it.", // Step 2
+                    "Perfect! We've made a new rectangle. Let's look at its sides.", // Step 3
+                    "The short side is (a-b) and the long side is (a+b). You've proved it!" // Step 4
+                ];
+            }
+            
+            init() {
+                this.resize();
+                this.a = 250;
+                this.b = 100;
+                this.a_minus_b = this.a - this.b;
+                this.frame = {
+                    x: (this.canvas.width / 2) - (this.a / 2) - 100, // Center L-shape/rectangle
+                    y: (this.canvas.height / 2) - (this.a / 2) - 50
+                };
+
+                // Define the clickable zones
+                this.zones = {
+                    a_sq: { x: this.frame.x, y: this.frame.y, w: this.a, h: this.a },
+                    b_sq: { x: this.frame.x + this.a_minus_b, y: this.frame.y + this.a_minus_b, w: this.b, h: this.b }, // Bottom-right corner
+                    cut_line: { x1: this.frame.x + this.a_minus_b, y1: this.frame.y, x2: this.frame.x + this.a_minus_b, y2: this.frame.y + this.a_minus_b },
+                    rect_1: { x: this.frame.x, y: this.frame.y, w: this.a, h: this.a_minus_b }, // Top rectangle
+                    rect_2: { x: this.frame.x, y: this.frame.y + this.a_minus_b, w: this.a_minus_b, h: this.b } // Bottom-left rectangle
+                };
+
+                this.state = {
+                    step: 0, // 0: Start, 1: b² removed, 2: Cut, 3: Moved, 4: Proved
+                    feedback: { message: "", color: '#333333' },
+                    completed: false
+                };
+                currentStepText.textContent = this.stepInstructions[0]; // Initial instruction
+            }
+            
+            draw() {
+                this.clearCanvas();
+                const { step, feedback, completed } = this.state;
+                const feedbackY = this.frame.y + this.a + 60;
+                
+                // --- Draw the visual representation based on the step ---
+                
+                // Step 0: Draw a² and highlight b²
+                if (step === 0) {
+                    this.ctx.fillStyle = '#2E86C1'; // a²
+                    this.ctx.fillRect(this.zones.a_sq.x, this.zones.a_sq.y, this.zones.a_sq.w, this.zones.a_sq.h);
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.font = `bold 40px ${this.fontSans}`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.fillText("a²", this.zones.a_sq.x + this.zones.a_sq.w/2, this.zones.a_sq.y + this.zones.a_sq.h/2);
+                    
+                    this.drawHighlight(this.zones.b_sq);
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                    this.ctx.font = `bold 30px ${this.fontSans}`;
+                    this.ctx.fillText("b²", this.zones.b_sq.x + this.zones.b_sq.w/2, this.zones.b_sq.y + this.zones.b_sq.h/2);
+                }
+
+                // Step 1: Draw L-shape (a² - b²) and highlight cut line
+                if (step === 1) {
+                    // Draw rect_1 (top)
+                    this.ctx.fillStyle = '#2E86C1';
+                    this.ctx.fillRect(this.zones.rect_1.x, this.zones.rect_1.y, this.zones.rect_1.w, this.zones.rect_1.h);
+                    // Draw rect_2 (bottom-left)
+                    this.ctx.fillStyle = '#2E86C1'; // Same color for now
+                    this.ctx.fillRect(this.zones.rect_2.x, this.zones.rect_2.y, this.zones.rect_2.w, this.zones.rect_2.h);
+                    
+                    this.drawHighlightLine(this.zones.cut_line);
+                }
+                
+                // Step 2: Draw L-shape with 2 colors, highlight rect_2
+                if (step === 2) {
+                    // Draw rect_1 (top)
+                    this.ctx.fillStyle = '#2E86C1'; // Blue
+                    this.ctx.fillRect(this.zones.rect_1.x, this.zones.rect_1.y, this.zones.rect_1.w, this.zones.rect_1.h);
+                    // Draw rect_2 (bottom-left)
+                    this.ctx.fillStyle = '#1ABC9C'; // Teal
+                    this.ctx.fillRect(this.zones.rect_2.x, this.zones.rect_2.y, this.zones.rect_2.w, this.zones.rect_2.h);
+                    
+                    this.drawHighlight(this.zones.rect_2); // Highlight the teal piece
+                }
+                
+                // Step 3 & 4: Draw the final rearranged rectangle
+                if (step >= 3) {
+                    // Draw rect_1 (top) in its original place
+                    this.ctx.fillStyle = '#2E86C1'; // Blue
+                    this.ctx.fillRect(this.zones.rect_1.x, this.zones.rect_1.y, this.zones.rect_1.w, this.zones.rect_1.h);
+                    
+                    // Draw rect_2 (teal) in its NEW, rotated position
+                    const new_rect_2 = {
+                        x: this.zones.rect_1.x + this.zones.rect_1.w, // to the right of rect_1
+                        y: this.zones.rect_1.y, // aligned with top
+                        w: this.b, // rotated, so width is old height
+                        h: this.a_minus_b // rotated, so height is old width
+                    };
+                    this.ctx.fillStyle = '#1ABC9C'; // Teal
+                    this.ctx.fillRect(new_rect_2.x, new_rect_2.y, new_rect_2.w, new_rect_2.h);
+                    
+                    // Draw the new dimension labels
+                    this.ctx.fillStyle = 'black';
+                    this.ctx.font = `bold 20px ${this.fontSans}`;
+                    this.ctx.textAlign = 'center';
+                    this.ctx.textBaseline = 'middle';
+                    
+                    // Top label (a + b)
+                    this.ctx.fillText("a", this.zones.rect_1.x + this.zones.rect_1.w/2, this.zones.rect_1.y - 10);
+                    this.ctx.fillText("b", new_rect_2.x + new_rect_2.w/2, new_rect_2.y - 10);
+                    // Top (a+b) bracket
+                    this.ctx.strokeStyle = 'black';
+                    this.ctx.lineWidth = 1;
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(this.zones.rect_1.x, this.zones.rect_1.y - 25);
+                    this.ctx.lineTo(this.zones.rect_1.x, this.zones.rect_1.y - 35);
+                    this.ctx.lineTo(new_rect_2.x + new_rect_2.w, this.zones.rect_1.y - 35);
+                    this.ctx.lineTo(new_rect_2.x + new_rect_2.w, this.zones.rect_1.y - 25);
+                    this.ctx.stroke();
+                    this.ctx.fillText("(a + b)", this.zones.rect_1.x + (this.a + this.b) / 2, this.zones.rect_1.y - 50);
+
+                    // Left label (a - b)
+                    this.ctx.save();
+                    this.ctx.translate(this.zones.rect_1.x - 20, this.zones.rect_1.y + this.zones.rect_1.h / 2);
+                    this.ctx.rotate(-Math.PI / 2);
+                    this.ctx.fillText("(a - b)", 0, 0);
+                    this.ctx.restore();
+                }
+
+                // Draw Feedback
+                if (completed) {
+                    this.drawFeedback("Hence Proved: a² - b² = (a + b)(a - b)", '#4CAF50', feedbackY);
+                } else if (feedback.message) {
+                    this.drawFeedback(feedback.message, feedback.color, feedbackY);
+                }
+            }
+            
+            onCanvasClick(x, y) {
+                const { step, completed } = this.state;
+                if (completed) return;
+
+                let correctClick = false;
+                let nextStep = step;
+                let feedbackMsg = "Oops! Click the highlighted area.";
+                let feedbackColor = '#F44336';
+
+                // Check clicks based on the current step
+                switch (step) {
+                    case 0: // Expecting click on b²
+                        if (isPointInRect({ x, y }, this.zones.b_sq, this.clickTolerance)) {
+                            correctClick = true;
+                            nextStep = 1;
+                        }
+                        break;
+                    case 1: // Expecting click on cut line
+                        if (isPointOnLine({ x, y }, this.zones.cut_line, this.clickTolerance)) {
+                            correctClick = true;
+                            nextStep = 2;
+                        }
+                        break;
+                    case 2: // Expecting click on rect_2 (teal)
+                        if (isPointInRect({ x, y }, this.zones.rect_2, this.clickTolerance)) {
+                            correctClick = true;
+                            nextStep = 3;
+                        }
+                        break;
+                    case 3: // Auto-advance to 'proved'
+                        correctClick = true;
+                        nextStep = 4;
+                        break;
+                }
+
+                if (correctClick) {
+                    this.state.step = nextStep;
+                    feedbackMsg = (nextStep === 3) ? "Perfect! We've made a new rectangle." : "Correct! Proceeding...";
+                    feedbackColor = '#4CAF50';
+                    currentStepText.textContent = this.stepInstructions[nextStep] || "Proof complete!";
+                    if (nextStep === 4) { // Reached final step
+                        this.state.completed = true;
+                        currentStepText.textContent = this.stepInstructions[4];
+                    }
+                } else {
+                    currentStepText.textContent = "Oops! Click the correct highlighted area.";
+                }
+
+                this.state.feedback = { message: feedbackMsg, color: feedbackColor };
+                this.draw();
+            }
+        }
+    </script>
+</body>
+
+</html>
