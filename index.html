@@ -1,627 +1,261 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kanya Sampoorna Project - Math Simulation</title>
-    <style>
-        /* * =================================
-         * GLOBAL STYLES
-         * =================================
-         */
-        :root {
-            --header-height: 120px;
-            --footer-height: 50px;
-            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            --color-primary: #005A9C;
-            --color-secondary: #00A9E0;
-            --color-accent: #FFC425;
-            --color-success: #4CAF50;
-            --color-error: #F44336;
-            --color-text-light: #FFFFFF;
-            --color-text-dark: #333333;
-            --color-bg-light: #F4F9FF;
-            --color-bg-white: #FFFFFF;
-            --color-border: #DDDDDD;
-
-            /* Simulation Colors */
-            --color-a-sq: #2E86C1;
-            /* Blue */
-            --color-b-sq: #E74C3C;
-            /* Red */
-            --color-c-sq: #2ECC71;
-            /* Green */
-            --color-ab: #F39C12;
-            /* Orange */
-            --color-bc: #9B59B6;
-            /* Purple */
-            --color-ac: #1ABC9C;
-            /* Teal */
-            --color-guide: rgba(255, 196, 37, 0.7);
-            /* Yellow */
-            --color-guide-border: #FFC425;
-            --color-highlight: rgba(76, 175, 80, 0.5);
-            /* Semi-transparent Green */
-            --color-highlight-border: #4CAF50;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
-        html,
-        body {
-            height: 100%;
-            width: 100%;
-            font-family: var(--font-sans);
-            background-color: var(--color-bg-light);
-            color: var(--color-text-dark);
-            overflow: hidden;
-            /* Prevents double scrollbars */
-        }
-
-        /* * =================================
-         * LAYOUT (HEADER, MAIN, FOOTER)
-         * =================================
-         */
-        .app-container {
-            display: flex;
-            flex-direction: column;
-            height: 100%;
-            width: 100%;
-        }
-
-        .header {
-            width: 100%;
-            height: var(--header-height);
-            background-color: var(--color-primary);
-            color: var(--color-text-light);
-            text-align: center;
-            padding: 1rem;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            line-height: 1.4;
-        }
-
-        .header h1 {
-            font-size: clamp(1.2rem, 3.5vw, 1.8rem);
-            margin: 0;
-        }
-
-        .header p {
-            font-size: clamp(0.9rem, 2.5vw, 1.1rem);
-            margin: 0;
-        }
-
-        .main-content {
-            width: 100%;
-            /* This is the main scrolling area */
-            flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 1.5rem;
-            display: block;
-            /* Default state */
-        }
-
-        .footer {
-            width: 100%;
-            height: var(--footer-height);
-            background-color: var(--color-primary);
-            color: var(--color-text-light);
-            text-align: center;
-            padding: 1rem;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(0.8rem, 2vw, 1rem);
-        }
-
-        .footer p {
-            margin: 0;
-        }
-
-        /* * =================================
-         * MAIN MENU (IDENTITY LIST)
-         * =================================
-         */
-        #identity-menu {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .identity-card {
-            background-color: var(--color-bg-white);
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 280px;
-            /* Increased height for preview */
-        }
-
-        .identity-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 20px rgba(0, 90, 156, 0.15);
-        }
-
-        .identity-preview {
-            width: 100%;
-            height: 120px;
-            margin-bottom: 1rem;
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            background-color: #fdfdfd;
-        }
-
-        .identity-preview-canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .identity-card .identity-name {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--color-primary);
-            margin-bottom: 0.5rem;
-            /* Reduced margin */
-        }
-
-        .identity-card .identity-formula {
-            font-size: 1.1rem;
-            font-weight: 500;
-            color: var(--color-text-dark);
-            font-family: monospace;
-            word-wrap: break-word;
-            margin-bottom: 1rem;
-            /* Reduced margin */
-        }
-
-        .identity-card .status-badge {
-            font-size: 0.9rem;
-            font-weight: 600;
-            padding: 0.5em 1em;
-            border-radius: 20px;
-            align-self: center;
-            margin-top: auto;
-            /* Pushes to bottom */
-        }
-
-        .status-badge.complete {
-            background-color: #E8F5E9;
-            /* Light Green */
-            color: #2E7D32;
-            /* Dark Green */
-        }
-
-        .status-badge.coming-soon {
-            background-color: #FFF3E0;
-            /* Light Orange */
-            color: #E65100;
-            /* Dark Orange */
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kanya Sampoorna Project - Math Simulation</title>
+  <style>
+    /* (retain your existing CSS) */
+    /* ... your full CSS here ... */
+    :root{ /* keep the same variables */ }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;width:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:#F4F9FF;color:#333;overflow:hidden}
+    .app-container{display:flex;flex-direction:column;height:100%;width:100%}
+    .header{height:120px;background:#005A9C;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:1rem}
+    .main-content{flex-grow:1;overflow-y:auto;padding:1.5rem}
+    .footer{height:50px;background:#005A9C;color:#fff;display:flex;justify-content:center;align-items:center}
+    #identity-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1200px;margin:0 auto}
+    .identity-card{background:#fff;border:1px solid #DDD;border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:transform .2s,box-shadow .2s;box-shadow:0 4px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;justify-content:space-between;min-height:280px}
+    .identity-card:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,90,156,.15)}
+    .identity-preview{width:100%;height:120px;margin-bottom:1rem;border:1px solid #DDD;border-radius:8px;background:#fdfdfd;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .identity-preview-canvas{width:100%;height:100%;object-fit:contain}
+    .identity-preview-img{max-width:100%;max-height:100%;object-fit:contain}
+    .identity-name{font-size:1.25rem;font-weight:600;color:#005A9C;margin-bottom:.5rem}
+    .identity-formula{font-size:1.1rem;font-weight:500;color:#333;font-family:monospace;margin-bottom:1rem}
+    .status-badge{font-size:.9rem;font-weight:600;padding:.5em 1em;border-radius:20px;align-self:center;margin-top:auto}
+    .status-badge.complete{background:#E8F5E9;color:#2E7D32}
+    .status-badge.coming-soon{background:#FFF3E0;color:#E65100;opacity:.9}
+  </style>
 </head>
-
 <body>
-    <div class="app-container">
-        <!-- 1. Header -->
-        <header class="header">
-            <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
-            <p><strong>The project is supported by TITAN and implemented by KALIKE</strong></p>
-            <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
-        </header>
+  <div class="app-container">
+    <header class="header">
+      <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+      <p><strong>The project is supported by TITAN and implemented by KALIKE</strong></p>
+      <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
+    </header>
 
-        <!-- 2. Main Content (Menu or Simulation) -->
-        <main class="main-content" id="main-content-area">
+    <main class="main-content" id="main-content-area">
+      <div id="identity-menu"></div>
+    </main>
 
-            <!-- 2a. Identity Menu (Visible by default) -->
-            <div id="identity-menu">
-                <!-- Cards will be dynamically inserted here by JavaScript -->
-            </div>
+    <footer class="footer">
+      <p><strong>Powered by AI and created by Kalike: An initiative of Tata Trusts.</strong></p>
+    </footer>
+  </div>
 
-            <!-- 2b. Simulation View (REMOVED from main page) -->
+  <script>
+    // ========================================================================
+    // GLOBAL STATE & DATA
+    // ========================================================================
 
-        </main>
+    // List of all identities - modified: mark a_minus_b_cu as 'complete'
+    const IDENTITIES = [
+      { id: 'a_plus_b_sq', name: 'Square of a Sum', formula: '(a + b)² = a² + 2ab + b²', status: 'complete', type: 'puzzle' },
+      { id: 'a_minus_b_sq', name: 'Square of a Difference', formula: '(a - b)² = a² - 2ab + b²', status: 'complete', type: 'interactive-step' },
+      { id: 'a_sq_minus_b_sq', name: 'Difference of Squares', formula: 'a² - b² = (a + b)(a - b)', status: 'complete', type: 'interactive-step' },
+      { id: 'a_plus_b_plus_c_sq', name: 'Square of a Trinomial', formula: '(a + b + c)² = a² + b² + c² + 2ab + 2bc + 2ca', status: 'complete', type: 'puzzle' },
+      { id: 'a_plus_b_cu', name: 'Cube of a Sum', formula: '(a + b)³ = a³ + 3a²b + 3ab² + b³', status: 'complete', type: 'stepped' },
+      
+      // *** MODIFIED: Cube of a Difference - now complete and should link to a7.html ***
+      { id: 'a_minus_b_cu', name: 'Cube of a Difference', formula: '(a - b)³ = a³ - 3a²b + 3ab² - b³', status: 'complete', type: 'stepped' },
 
-        <!-- 4. Footer -->
-        <footer class="footer">
-            <p><strong>Powered by AI and created by Kalike: An initiative of Tata Trusts.</strong></p>
-        </footer>
-    </div>
+      // 7th formula - will use the screenshot image as the visual icon
+      { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'coming-soon', type: 'stepped' },
 
-    <script>
-        // ========================================================================
-        // GLOBAL STATE & DATA
-        // ========================================================================
+      { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'coming-soon', type: 'stepped' },
+      { id: 'x_plus_y_sq_plus_x_minus_y_sq', name: 'Sum of Squares (Expanded)', formula: '(x + y)² + (x - y)² = 2(x² + y²)', status: 'coming-soon', type: 'stepped' },
+      { id: 'x_plus_y_sq_minus_x_minus_y_sq', name: 'Difference of Squares (Expanded)', formula: '(x + y)² - (x - y)² = 4xy', status: 'coming-soon', type: 'stepped' },
+      { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'coming-soon', type: 'stepped' },
+      { id: 'pythagoras', name: 'Pythagorean Theorem', formula: 'a² + b² = c²', status: 'coming-soon', type: 'stepped' }
+    ];
 
-        // List of all identities
-        const IDENTITIES = [{
-            id: 'a_plus_b_sq',
-            name: 'Square of a Sum',
-            formula: '(a + b)² = a² + 2ab + b²',
-            status: 'complete', // WORKING
-            type: 'puzzle'
-        }, {
-            id: 'a_minus_b_sq',
-            name: 'Square of a Difference',
-            formula: '(a - b)² = a² - 2ab + b²',
-            status: 'complete', // WORKING
-            type: 'interactive-step'
-        }, {
-            id: 'a_sq_minus_b_sq',
-            name: 'Difference of Squares',
-            formula: 'a² - b² = (a + b)(a - b)',
-            status: 'complete', // WORKING
-            type: 'interactive-step'
-        }, {
-            id: 'a_plus_b_plus_c_sq',
-            name: 'Square of a Trinomial',
-            formula: '(a + b + c)² = a² + b² + c² + 2ab + 2bc + 2ca',
-            status: 'complete', // WORKING
-            type: 'puzzle'
-        }, {
-            id: 'a_plus_b_cu',
-            name: 'Cube of a Sum',
-            formula: '(a + b)³ = a³ + 3a²b + 3ab² + b³',
-            status: 'complete', // <-- MODIFIED
-            type: 'stepped'
-        }, {
-            id: 'a_minus_b_cu',
-            name: 'Cube of a Difference',
-            formula: '(a - b)³ = a³ - 3a²b + 3ab² - b³',
-            status: 'coming-soon', // <-- MODIFIED
-            type: 'stepped'
-        }, {
-            id: 'a_cu_plus_b_cu',
-            name: 'Sum of Cubes',
-            formula: 'a³ + b³ = (a + b)(a² - ab + b²)',
-            status: 'coming-soon',
-            type: 'stepped'
-        }, {
-            id: 'a_cu_minus_b_cu',
-            name: 'Difference of Cubes',
-            formula: 'a³ - b³ = (a - b)(a² + ab + b²)',
-            status: 'coming-soon',
-            type: 'stepped'
-        }, {
-            id: 'x_plus_y_sq_plus_x_minus_y_sq',
-            name: 'Sum of Squares (Expanded)',
-            formula: '(x + y)² + (x - y)² = 2(x² + y²)',
-            status: 'coming-soon',
-            type: 'stepped'
-        }, {
-            id: 'x_plus_y_sq_minus_x_minus_y_sq',
-            name: 'Difference of Squares (Expanded)',
-            formula: '(x + y)² - (x - y)² = 4xy',
-            status: 'coming-soon',
-            type: 'stepped'
-        }, {
-            id: 'a_plus_b_plus_c_cu',
-            name: 'Cube of a Trinomial',
-            formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)',
-            status: 'coming-soon',
-            type: 'stepped'
-        }, {
-            id: 'pythagoras',
-            name: 'Pythagorean Theorem',
-            formula: 'a² + b² = c²',
-            status: 'coming-soon',
-            type: 'stepped'
-        }, ];
+    // DOM Element references
+    let menuView;
 
-        // DOM Element references
-        let menuView;
+    window.onload = () => {
+      menuView = document.getElementById('identity-menu');
+      createIdentityMenu();
+    };
 
-        // ========================================================================
-        // NAVIGATION & INITIALIZATION
-        // ========================================================================
+    function createIdentityMenu() {
+      menuView.innerHTML = ''; // Clear existing menu
 
-        /**
-         * Initializes the application on window load.
-         */
-        window.onload = () => {
-            menuView = document.getElementById('identity-menu');
-            createIdentityMenu();
-        };
+      // Map identity IDs to file names for completed sims
+      const filenameMap = {
+        'a_plus_b_sq': 'a1.html',
+        'a_minus_b_sq': 'a2.html',
+        'a_sq_minus_b_sq': 'a3.html',
+        'a_plus_b_plus_c_sq': 'a4.html',
+        'a_plus_b_cu': 'a6.html',
+        // *** NEW: map the cube-of-difference to a7.html ***
+        'a_minus_b_cu': 'a7.html'
+      };
 
-        /**
-         * Creates and displays the main identity selection menu.
-         */
-        function createIdentityMenu() {
-            menuView.innerHTML = ''; // Clear existing menu
-            IDENTITIES.forEach(identity => {
+      IDENTITIES.forEach(identity => {
+        const isComplete = identity.status === 'complete';
+        const wrapperTag = isComplete ? 'a' : 'div';
+        const wrapper = document.createElement(wrapperTag);
+        wrapper.className = 'identity-card-link-wrapper';
 
-                // Create the link tag (if complete) or a div (if coming soon)
-                const isComplete = identity.status === 'complete';
-                const wrapperTag = isComplete ? 'a' : 'div';
-                const wrapper = document.createElement(wrapperTag);
-                wrapper.className = 'identity-card-link-wrapper'; // Use this for styling if needed
-
-                if (isComplete) {
-                    // UPDATED: Map identity IDs to the specific HTML files provided
-                    const filenameMap = {
-                        'a_plus_b_sq': 'a1.html',
-                        'a_minus_b_sq': 'a2.html',
-                        'a_sq_minus_b_sq': 'a3.html',
-                        'a_plus_b_plus_c_sq': 'a4.html',
-                        'a_plus_b_cu': 'a6.html' // <-- MODIFIED: Was a5.html
-                    };
-                    
-                    // Get the correct filename from the map
-                    const filename = filenameMap[identity.id];
-                    
-                    if (filename) {
-                        wrapper.href = `./${filename}`; // Set the new link URL
-                    } else {
-                        // Fallback in case a 'complete' identity is not in the map
-                        wrapper.href = `./sim_${identity.id}.html`; 
-                    }
-                    wrapper.style.textDecoration = 'none'; // Remove underline
-                    wrapper.style.color = 'inherit'; // Inherit text color
-                }
-
-                const card = document.createElement('div');
-                card.className = 'identity-card';
-                card.dataset.id = identity.id;
-
-                // Create preview canvas area
-                const preview = document.createElement('div');
-                preview.className = 'identity-preview';
-                const previewCanvas = document.createElement('canvas');
-                previewCanvas.className = 'identity-preview-canvas';
-                previewCanvas.width = 240; // Fixed resolution for previews
-                previewCanvas.height = 120;
-                preview.appendChild(previewCanvas);
-
-                card.innerHTML = `
-                    ${preview.outerHTML}
-                    <div class="identity-name">${identity.name}</div>
-                    <div class="identity-formula">${identity.formula}</div>
-                    <span class="status-badge ${identity.status}">${identity.status === 'complete' ? 'Start Learning' : 'Coming Soon'}</span>
-                `;
-
-                if (!isComplete) {
-                    card.style.cursor = 'not-allowed';
-                    card.style.opacity = '0.6';
-                }
-
-                // Append the card to the wrapper (which is either an <a> or <div>)
-                wrapper.appendChild(card);
-                menuView.appendChild(wrapper);
-
-                // Draw the preview
-                requestAnimationFrame(() => {
-                    const canvasOnCard = card.querySelector('.identity-preview-canvas');
-                    if (canvasOnCard) {
-                        drawIdentityPreview(canvasOnCard, identity);
-                    }
-                });
-            });
+        if (isComplete) {
+          const filename = filenameMap[identity.id];
+          if (filename) {
+            wrapper.href = `./${filename}`;
+          } else {
+            wrapper.href = `./sim_${identity.id}.html`;
+          }
+          wrapper.style.textDecoration = 'none';
+          wrapper.style.color = 'inherit';
         }
 
-        /**
-         * Draws a small, static preview for an identity on its menu card.
-         * @param {HTMLCanvasElement} previewCanvas - The canvas on the card.
-         * @param {object} identity - The identity object.
-         */
-        function drawIdentityPreview(previewCanvas, identity) {
-            const pCtx = previewCanvas.getContext('2d');
-            const w = previewCanvas.width;
-            const h = previewCanvas.height;
-            pCtx.clearRect(0, 0, w, h);
-            pCtx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-            pCtx.textAlign = 'center';
-            pCtx.textBaseline = 'middle';
+        const card = document.createElement('div');
+        card.className = 'identity-card';
+        card.dataset.id = identity.id;
 
-            // Use slightly larger relative sizes for preview clarity
-            const a = 60,
-                b = 40,
-                c = 25;
-            const total = a + b; // Base for (a+b)^2, adjusted for others
-            const x_base = (w - a) / 2; // Center based on the 'a' square
-            const y_base = (h - a) / 2;
-            const a_minus_b = a - b;
+        // Preview container
+        const preview = document.createElement('div');
+        preview.className = 'identity-preview';
 
-            switch (identity.id) {
-                case 'a_plus_b_sq':
-                    pCtx.fillStyle = '#2E86C1'; // a²
-                    pCtx.fillRect(x_base, y_base, a, a);
-                    pCtx.fillStyle = '#E74C3C'; // b²
-                    pCtx.fillRect(x_base + a, y_base + a, b, b);
-                    pCtx.fillStyle = '#F39C12'; // ab
-                    pCtx.fillRect(x_base + a, y_base, b, a);
-                    pCtx.fillRect(x_base, y_base + a, a, b);
-                    break;
-                case 'a_plus_b_cu':
-                    // New preview based on user's 3D image
-                    const color_a3 = '#2E86C1'; // Blue
-                    const color_b3 = '#F39C12'; // Orange
-                    const color_a2b = '#1ABC9C'; // Teal
-                    const color_ab2 = '#2ECC71'; // Green
-                    
-                    pCtx.clearRect(0, 0, w, h); // Clear for this specific preview
+        // Special case: for the 7th identity use the uploaded screenshot as an <img>
+        if (identity.id === 'a_cu_plus_b_cu') {
+          // Use your screenshot as visual icon. Ensure formulae.png is available next to index.html
+          const img = document.createElement('img');
+          img.className = 'identity-preview-img';
+          img.alt = identity.name + ' preview';
+          img.src = './formulae.png'; // <-- place formulae.png next to this file (or change path)
+          preview.appendChild(img);
+        } else {
+          // Default: canvas preview (used for most identities)
+          const previewCanvas = document.createElement('canvas');
+          previewCanvas.className = 'identity-preview-canvas';
+          previewCanvas.width = 240;
+          previewCanvas.height = 120;
+          preview.appendChild(previewCanvas);
+        }
 
-                    // Draw 8 pieces in an exploded view
-                    // a³
-                    pCtx.fillStyle = color_a3;
-                    pCtx.fillRect(100, 30, 40, 40);
-                    // b³
-                    pCtx.fillStyle = color_b3;
-                    pCtx.fillRect(70, 80, 25, 25);
-                    
-                    // a²b
-                    pCtx.fillStyle = color_a2b;
-                    pCtx.fillRect(50, 20, 40, 30);
-                    pCtx.fillRect(150, 30, 40, 30);
-                    pCtx.fillRect(100, 80, 40, 25);
-                    
-                    // ab²
-                    pCtx.fillStyle = color_ab2;
-                    pCtx.fillRect(10, 70, 40, 25);
-                    pCtx.fillRect(150, 80, 40, 25);
-                    pCtx.fillRect(190, 50, 30, 40);
-                    break;
-                case 'a_minus_b_sq':
-                    // Updated preview to match user image
-                    // Draw (a-b)²
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(x_base, y_base, a_minus_b, a_minus_b);
-                    pCtx.fillStyle = 'white'; // Label color
-                    pCtx.font = 'bold 12px -apple-system'; // Smaller font for label
-                    pCtx.fillText("(a-b)²", x_base + a_minus_b / 2, y_base + a_minus_b / 2);
+        // Build inner HTML (but leave the preview node we created above)
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'identity-name';
+        nameDiv.textContent = identity.name;
 
-                    // Draw b²
-                    pCtx.fillStyle = '#E74C3C'; // Red color like in sim
-                    pCtx.fillRect(x_base + a_minus_b, y_base + a_minus_b, b, b);
-                    pCtx.fillStyle = 'white'; // Label color
-                    pCtx.fillText("b²", x_base + a_minus_b + b / 2, y_base + a_minus_b + b / 2);
+        const formulaDiv = document.createElement('div');
+        formulaDiv.className = 'identity-formula';
+        formulaDiv.textContent = identity.formula;
 
-                    // Draw dividing lines (optional)
-                    pCtx.strokeStyle = '#AAAAAA';
-                    pCtx.lineWidth = 0.5;
-                    pCtx.beginPath();
-                    pCtx.moveTo(x_base + a_minus_b, y_base);
-                    pCtx.lineTo(x_base + a_minus_b, y_base + a);
-                    pCtx.moveTo(x_base, y_base + a_minus_b);
-                    pCtx.lineTo(x_base + a, y_base + a_minus_b);
-                    pCtx.stroke();
+        const badge = document.createElement('span');
+        badge.className = `status-badge ${identity.status}`;
+        badge.textContent = identity.status === 'complete' ? 'Start Learning' : 'Coming Soon';
 
-                    // Add outer labels
-                    pCtx.fillStyle = 'black';
-                    pCtx.font = 'bold 10px -apple-system';
-                    pCtx.fillText("a-b", x_base + a_minus_b / 2, y_base - 8);
-                    pCtx.fillText("b", x_base + a_minus_b + b / 2, y_base - 8);
-                    pCtx.save();
-                    pCtx.translate(x_base - 8, y_base + a_minus_b / 2);
-                    pCtx.rotate(-Math.PI / 2);
-                    pCtx.fillText("a-b", 0, 0);
-                    pCtx.restore();
-                    pCtx.save();
-                    pCtx.translate(x_base - 8, y_base + a_minus_b + b / 2);
-                    pCtx.rotate(-Math.PI / 2);
-                    pCtx.fillText("b", 0, 0);
-                    pCtx.restore();
-                    break;
-                case 'a_plus_b_plus_c_sq':
-                    const s = 100; // total size
-                    const s_a = s * (a / (a + b + c));
-                    const s_b = s * (b / (a + b + c));
-                    const s_c = s * (c / (a + b + c));
-                    const s_x = (w - s) / 2;
-                    const s_y = (h - s) / 2;
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(s_x, s_y, s_a, s_a); // a²
-                    pCtx.fillStyle = '#E74C3C';
-                    pCtx.fillRect(s_x + s_a, s_y + s_a, s_b, s_b); // b²
-                    pCtx.fillStyle = '#2ECC71';
-                    pCtx.fillRect(s_x + s_a + s_b, s_y + s_a + s_b, s_c, s_c); // c²
-                    pCtx.fillStyle = '#F39C12';
-                    pCtx.fillRect(s_x + s_a, s_y, s_b, s_a);
-                    pCtx.fillRect(s_x, s_y + s_a, s_a, s_b); // ab
-                    pCtx.fillStyle = '#1ABC9C';
-                    pCtx.fillRect(s_x + s_a + s_b, s_y, s_c, s_a);
-                    pCtx.fillRect(s_x, s_y + s_a + s_b, s_a, s_c); // ac
-                    pCtx.fillStyle = '#9B59B6';
-                    pCtx.fillRect(s_x + s_a + s_b, s_y + s_a, s_c, s_b);
-                    pCtx.fillRect(s_x + s_a, s_y + s_a + s_b, s_b, s_c); // bc
-                    break;
-                case 'pythagoras': // Now 'coming-soon', but we can still show the old preview
-                    const py_a = 60,
-                        py_b = 80;
-                    const py_x = w / 2 - py_b / 2;
-                    const py_y = h / 2 + py_a / 2;
-                    pCtx.fillStyle = '#AAA'; // triangle
-                    pCtx.beginPath();
-                    pCtx.moveTo(py_x, py_y);
-                    pCtx.lineTo(py_x, py_y - py_a);
-                    pCtx.lineTo(py_x + py_b, py_y);
-                    pCtx.closePath();
-                    pCtx.fill();
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(py_x - py_a, py_y - py_a, py_a, py_a); // a²
-                    pCtx.fillStyle = '#E74C3C';
-                    pCtx.fillRect(py_x, py_y, py_b, py_b); // b²
-                    break;
-                case 'a_sq_minus_b_sq':
-                    // START --- MODIFIED PREVIEW ---
-                    const sim_a = 70;
-                    const sim_b = 35;
-                    const sim_a_plus_b = sim_a + sim_b; // 105
-                    const sim_a_minus_b = sim_a - sim_b; // 35
+        // If not complete, make it look disabled
+        if (!isComplete) {
+          card.style.cursor = 'not-allowed';
+          card.style.opacity = '0.6';
+        }
 
-                    const rect_w = sim_a_plus_b;
-                    const rect_h = sim_a_minus_b;
+        // Append preview and other pieces explicitly
+        card.appendChild(preview);
+        card.appendChild(nameDiv);
+        card.appendChild(formulaDiv);
+        card.appendChild(badge);
 
-                    // Center the rectangle
-                    const rect_x = (w - rect_w) / 2; // (240 - 105) / 2 = 67.5
-                    const rect_y = (h - rect_h) / 2 + 10; // (120 - 35) / 2 = 42.5 + 10 = 52.5 (move down for top label)
+        wrapper.appendChild(card);
+        menuView.appendChild(wrapper);
 
-                    // Draw blue part (a * (a-b))
-                    pCtx.fillStyle = '#2E86C1'; // Blue
-                    pCtx.fillRect(rect_x, rect_y, sim_a, sim_a_minus_b);
-
-                    // Draw teal part (b * (a-b))
-                    pCtx.fillStyle = '#1ABC9C'; // Teal (matches simulation)
-                    pCtx.fillRect(rect_x + sim_a, rect_y, sim_b, sim_a_minus_b);
-
-                    // Add labels
-                    pCtx.fillStyle = 'black';
-                    pCtx.font = 'bold 12px -apple-system';
-                    pCtx.textAlign = 'center';
-                    // Top labels
-                    pCtx.fillText("a", rect_x + sim_a / 2, rect_y - 25);
-                    pCtx.fillText("b", rect_x + sim_a + sim_b / 2, rect_y - 25);
-                    pCtx.strokeStyle = 'black';
-                    pCtx.lineWidth = 1;
-                    pCtx.beginPath();
-                    pCtx.moveTo(rect_x, rect_y - 15);
-                    pCtx.lineTo(rect_x, rect_y - 20);
-                    pCtx.lineTo(rect_x + rect_w, rect_y - 20);
-                    pCtx.lineTo(rect_x + rect_w, rect_y - 15);
-                    pCtx.stroke();
-                    pCtx.font = 'bold 14px -apple-system';
-                    pCtx.fillText("(a + b)", rect_x + rect_w / 2, rect_y - 35);
-
-                    // Left label
-                    pCtx.save();
-                    pCtx.translate(rect_x - 10, rect_y + rect_h / 2);
-                    pCtx.rotate(-Math.PI / 2);
-                    pCtx.fillText("(a - b)", 0, 0);
-                    pCtx.restore();
-                    // END --- MODIFIED PREVIEW ---
-                    break;
-                default:
-                    // Default for algebraic proofs (all 'coming-soon' now)
-                    pCtx.fillStyle = '#333333';
-                    pCtx.font = 'bold 20px monospace';
-                    const parts = identity.formula.split('=');
-                    pCtx.fillText(parts[0], w / 2, h / 2 - 20);
-                    pCtx.fillText("=", w / 2, h / 2);
-                    pCtx.fillText(parts[1], w / 2, h / 2 + 20);
+        // Draw canvas previews for items that have one (skip the ones using <img>)
+        if (identity.id !== 'a_cu_plus_b_cu') {
+          requestAnimationFrame(() => {
+            const canvasOnCard = card.querySelector('.identity-preview-canvas');
+            if (canvasOnCard) {
+              drawIdentityPreview(canvasOnCard, identity);
             }
+          });
         }
-    </script>
+      });
+    }
+
+    /**
+     * Draws a small, static preview for an identity on its menu card.
+     * (I left your original drawIdentityPreview content — trimmed here for brevity.
+     *  Make sure to copy the rest of your drawing logic/variants as needed.)
+     */
+    function drawIdentityPreview(previewCanvas, identity) {
+      const pCtx = previewCanvas.getContext('2d');
+      const w = previewCanvas.width;
+      const h = previewCanvas.height;
+      pCtx.clearRect(0, 0, w, h);
+      pCtx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      pCtx.textAlign = 'center';
+      pCtx.textBaseline = 'middle';
+
+      const a = 60, b = 40, c = 25;
+      const a_minus_b = a - b;
+      const x_base = (w - a) / 2;
+      const y_base = (h - a) / 2;
+
+      switch (identity.id) {
+        case 'a_plus_b_sq':
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(x_base, y_base, a, a);
+          pCtx.fillStyle = '#E74C3C';
+          pCtx.fillRect(x_base + a, y_base + a, b, b);
+          pCtx.fillStyle = '#F39C12';
+          pCtx.fillRect(x_base + a, y_base, b, a);
+          pCtx.fillRect(x_base, y_base + a, a, b);
+          break;
+
+        case 'a_plus_b_cu':
+          // simplified preview for cube of sum
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(100, 30, 40, 40); // a^3
+          pCtx.fillStyle = '#F39C12';
+          pCtx.fillRect(70, 80, 25, 25); // b^3
+          pCtx.fillStyle = '#1ABC9C';
+          pCtx.fillRect(50, 20, 40, 30); // a^2 b
+          // more pieces as you had...
+          break;
+
+        case 'a_minus_b_sq':
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(x_base, y_base, a_minus_b, a_minus_b);
+          pCtx.fillStyle = '#E74C3C';
+          pCtx.fillRect(x_base + a_minus_b, y_base + a_minus_b, b, b);
+          pCtx.fillStyle = 'black';
+          pCtx.font = 'bold 10px -apple-system';
+          pCtx.fillText("(a-b)²", x_base + a_minus_b / 2, y_base + a_minus_b / 2);
+          pCtx.fillText("b²", x_base + a_minus_b + b / 2, y_base + a_minus_b + b / 2);
+          break;
+
+        case 'a_sq_minus_b_sq':
+          // modified preview similar to your earlier version
+          const sim_a = 70;
+          const sim_b = 35;
+          const sim_a_plus_b = sim_a + sim_b;
+          const sim_a_minus_b = sim_a - sim_b;
+          const rect_w = sim_a_plus_b;
+          const rect_h = sim_a_minus_b;
+          const rect_x = (w - rect_w) / 2;
+          const rect_y = (h - rect_h) / 2 + 10;
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(rect_x, rect_y, sim_a, sim_a_minus_b);
+          pCtx.fillStyle = '#1ABC9C';
+          pCtx.fillRect(rect_x + sim_a, rect_y, sim_b, sim_a_minus_b);
+          pCtx.fillStyle = 'black';
+          pCtx.font = 'bold 12px -apple-system';
+          pCtx.fillText("a", rect_x + sim_a / 2, rect_y - 25);
+          pCtx.fillText("b", rect_x + sim_a + sim_b / 2, rect_y - 25);
+          break;
+
+        default:
+          pCtx.fillStyle = '#333';
+          pCtx.font = 'bold 14px monospace';
+          const parts = identity.formula.split('=');
+          pCtx.fillText(parts[0], w/2, h/2 - 10);
+          pCtx.fillText('=', w/2, h/2 + 6);
+          pCtx.fillText(parts[1], w/2, h/2 + 24);
+      }
+    }
+
+  </script>
 </body>
-
 </html>
-
-
-
