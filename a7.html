@@ -226,6 +226,40 @@
             background-color: #28a745;
         }
 
+        /* NEW: Global Nav Buttons */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .global-button {
+            flex-basis: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .global-button.reset {
+            background-color: #dc3545;
+            color: white;
+        }
+        .global-button.reset:hover {
+            background-color: #c82333;
+        }
+        .global-button.menu {
+            background-color: #007bff;
+            color: white;
+        }
+        .global-button.menu:hover {
+            background-color: #0056b3;
+        }
+        
+
         /* Interactive Feedback Text */
         .feedback {
             font-weight: bold;
@@ -337,6 +371,12 @@
             <div class="ui-panel">
                 <div class="ui-content">
                     
+                    <!-- NEW: Global Nav -->
+                    <div class="global-nav">
+                        <button class="global-button reset" onclick="location.reload()">Reset</button>
+                        <button class="global-button menu" onclick="location.href='index.html'">Back to Menu</button>
+                    </div>
+
                     <div class="step-header active" onclick="goToStep(0)">
                         <h2>Step 0: Welcome!</h2>
                     </div>
@@ -419,8 +459,6 @@
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- REMOVED STEPS 4-12 -->
                     
                 </div>
             </div>
@@ -578,7 +616,6 @@
         function animate() {
             requestAnimationFrame(animate);
             
-            // flyAwayAnimation(); // OLD
             runActiveAnimations(); // Run all position/fade animations
             
             if (controls) controls.update();
@@ -615,8 +652,6 @@
             if (intersects.length > 0) {
                 let clickedObject = intersects[0].object;
                 
-                // Note: No need to traverse up since we're not intersecting outlines
-                
                 handleInteraction(clickedObject); // Call the handler
             }
         }
@@ -624,7 +659,7 @@
         // This function handles the logic for *what* to do with a clicked object.
         function handleInteraction(clickedObject) {
             
-            // Define piece types for 3D interaction (flashing only)
+            // Define piece types for 3D interaction
             const stickMeshes = [meshes.stick1, meshes.stick2, meshes.stick3];
             const slabMeshes = [meshes.slab1, meshes.slab2, meshes.slab3];
             
@@ -644,7 +679,6 @@
                         stepState.step3_stage = 1; // Advance to slab removal
                         stepState.step3_piecesLeft = 3;
                         
-                        // Start fading out a3 cube - NO, make it instant
                         meshes.a_cube.visible = false;
                         setLabelGroupVisibility(['a_cube'], false);
                         
@@ -669,7 +703,6 @@
                 // Stage 1: Removing Slabs
                 else if (stepState.step3_stage === 1) {
                     if (pieceType === 'slab' && clickedObject.visible && !clickedObject.userData.isRemoving) {
-                        // removePiece(clickedObject); // OLD: Fade out
                         clickedObject.visible = false; // NEW: Instant hide
                         clickedObject.userData.isRemoving = true; // Flag as removed
                         setLabelGroupVisibility([getLabelForMesh(clickedObject)], false); // Hide its label
@@ -678,7 +711,7 @@
                         if (stepState.step3_piecesLeft === 0) {
                             stepState.step3_stage = 2; // Advance to stick removal
                             stepState.step3_piecesLeft = 3;
-                            // NEW: Hide all slabs
+                            // NEW: Hide all slabs that were clicked
                             slabMeshes.forEach(mesh => {
                                 if (mesh.userData.isRemoving) mesh.visible = false;
                             });
@@ -692,7 +725,6 @@
                 // Stage 2: Removing Sticks
                 else if (stepState.step3_stage === 2) {
                     if (pieceType === 'stick' && clickedObject.visible && !clickedObject.userData.isRemoving) {
-                        // removePiece(clickedObject); // OLD
                         clickedObject.visible = false; // NEW: Instant hide
                         clickedObject.userData.isRemoving = true;
                         setLabelGroupVisibility([getLabelForMesh(clickedObject)], false);
@@ -715,7 +747,6 @@
                 // Stage 3: Removing Corner
                 else if (stepState.step3_stage === 3) {
                     if (pieceType === 'corner' && clickedObject.visible && !clickedObject.userData.isRemoving) {
-                        // removePiece(clickedObject); // OLD
                         clickedObject.visible = false; // NEW: Instant hide
                         clickedObject.userData.isRemoving = true;
                         setLabelGroupVisibility([getLabelForMesh(clickedObject)], false);
@@ -740,11 +771,8 @@
                 }
             }
             
-            // --- Old Step 5 Logic (now part of Step 3) ---
-            else if (currentStep === 5 && pieceType && clickedObject.visible) {
-                 // This step is no longer used, logic is in step 3
-                 // But we keep the flash for other steps
-            } else if (pieceType) {
+            // Flash if wrong piece clicked in other steps
+            else if (pieceType) {
                  flashWrong(clickedObject);
             }
         } 
@@ -835,8 +863,6 @@
         // --- OLD flyAwayAnimation (replaced by runActiveAnimations) ---
         function flyAwayAnimation() {
             // This function is now OBSOLETE.
-            // All logic is handled by runActiveAnimations.
-            // We keep it here to prevent breaking old calls, but it does nothing.
         }
         
         // Gets the "final" assembled position for a piece
@@ -1086,8 +1112,8 @@
             labels.dim_amb_vert2 = createLabel('a-b', 'dim-label'); // left
             
             // NEW: Labels for Vertical Split
-            labels.vert_area_amb = createLabel('a(a-b)'); // Removed dim-label class
-            labels.vert_area_b = createLabel('a(b)'); // Removed dim-label class
+            labels.vert_area_amb = createLabel('a(a-b)'); // Only Area
+            labels.vert_area_b = createLabel('a(b)'); // Only Area
 
 
             // 3D Labels
@@ -1124,8 +1150,8 @@
             planes.amb_plane2.add(labels.dim_b_horiz2, labels.dim_amb_vert2);
             
             // Add Vertical Split labels
-            planes.vert_plane_amb.add(labels.vert_area_amb); // Only add area label
-            planes.vert_plane_b.add(labels.vert_area_b); // Only add area label
+            planes.vert_plane_amb.add(labels.vert_area_amb);
+            planes.vert_plane_b.add(labels.vert_area_b);
 
 
             // Add 3D labels to cubes
@@ -1413,9 +1439,8 @@
                 const vertPlanes = [planes.vert_plane_amb, planes.vert_plane_b];
                 vertPlanes.forEach(plane => {
                     plane.visible = true;
-                    const startPos = new THREE.Vector3().copy(get2DAssembledPos(plane));
-                    startPos.y = 0; // Assembled Y
-                    startPos.x = 0; // Start from center X
+                    // Start from center
+                    plane.position.set(0, 0, 0.1);
                     const endPos = get2DExplodedPos(plane, 1);
                     startAnimation(plane, endPos, 0.8, 0.03); // Animate to pos and fade in
                 });
@@ -1440,6 +1465,7 @@
                     // Start from the "assembled" vertical position
                     const startPos = get2DExplodedPos(plane, 1); // Start from vertical split pos
                     startPos.y = 0; // Assembled Y
+                    plane.position.copy(startPos); // Set start pos
                     const endPos = get2DExplodedPos(plane, 2);
                     startAnimation(plane, endPos, 1.0, 0.03); // Animate to pos and fade in
                 });
@@ -1622,7 +1648,6 @@
                         plane.visible = stepState.step2_vertical_split && !stepState.step2_horizontal_split;
                         plane.position.copy(get2DExplodedPos(plane, 1)); // Set to final exploded pos
                     });
-                    // *** FIX: Only show AREA labels ***
                     setLabelGroupVisibility(['vert_area_amb', 'vert_area_b'], stepState.step2_vertical_split && !stepState.step2_horizontal_split);
 
                     // Show horizontal (final) split
@@ -1658,17 +1683,9 @@
                 
                 // REMOVED STEPS 4-12
                 
-                case 4: 
-                case 5: 
-                case 6: 
-                case 7: 
-                case 8: 
-                case 9: 
-                case 10: 
-                case 11: 
-                case 12: 
-                    // Go to step 3 if somehow triggered
-                    goToStep(3);
+                default:
+                    // Go to step 0 if somehow triggered
+                    goToStep(0);
                     break;
             }
         }
