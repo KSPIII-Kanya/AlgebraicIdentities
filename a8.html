@@ -1,0 +1,1305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- NEW TITLE -->
+    <title>Kanya Sampoorna Project 3.0 - (a³ + b³)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+    
+    <style>
+        /* Basic Reset and Font */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99; /* Titan/Kalike Blue */
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .header h1 {
+            font-size: 1.5rem; 
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            margin: 0;
+        }
+        
+        /* Footer */
+        .footer {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            z-index: 10;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* Content Area Wrapper */
+        .content-area {
+            flex-grow: 1; 
+            display: flex;
+            position: relative; 
+            overflow: hidden; 
+            height: 100%;
+        }
+
+        /* Main Layout Container */
+        .main-container {
+            display: flex;
+            flex-direction: row; /* Side-by-side */
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Scene container */
+        #scene-container {
+            position: relative;
+            flex-grow: 1; 
+            height: 100%;
+            z-index: 1;
+            overflow: hidden; 
+            cursor: pointer; /* Add cursor for interaction */
+        }
+        
+        /* 3D Label CSS */
+        .label {
+            color: #111;
+            font-family: Arial, sans-serif;
+            font-size: 18px; /* Increased font size */
+            font-weight: bold; /* Made labels bold */
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly less transparent */
+            padding: 6px 10px; /* Increased padding */
+            border-radius: 6px; /* Slightly larger border radius */
+            border: 1px solid #666; /* Darker border */
+            pointer-events: none; /* So they don't block clicks */
+            white-space: nowrap; /* Prevent line breaks */
+            /* Add a shadow for better visibility */
+            text-shadow: 0 0 2px white, 0 0 2px white, 0 0 2px white;
+        }
+        
+        /* NEW: 3D Formula Container */
+        #formula-container {
+            /* This is now a div in the HTML body, not just a style class */
+            padding: 15px;
+            text-align: center;
+            width: 600px; /* Fixed width for better layout */
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 2px solid #004a99;
+            border-radius: 8px;
+            /* display: none; */ /* Handled by label.visible */
+            pointer-events: none; /* Pass clicks through */
+            transition: opacity 0.3s;
+        }
+        
+        /* UI Panel (right-side column) */
+        .ui-panel {
+            position: relative;
+            flex-basis: 400px; 
+            flex-shrink: 0;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1);
+            border-left: 1px solid #ccc; 
+            padding: 20px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ui-content {
+            max-height: none;
+            overflow-y: auto;
+            flex-grow: 1; 
+            padding-right: 10px; 
+        }
+
+        /* Step Navigation Styling */
+        .step-header {
+            cursor: pointer;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            background-color: #f4f4f4;
+            transition: background-color 0.2s;
+            border: 1px solid #eee;
+        }
+        
+        .step-header:hover {
+            background-color: #e9e9e9;
+        }
+
+        .step-header.active {
+            background-color: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+
+        .step-header h2 {
+            font-size: 1.1rem;
+            margin-bottom: 0;
+            color: #004a99;
+        }
+        
+        .step-header.active h2 {
+            color: white;
+        }
+
+        .step-description {
+            display: none; /* Hidden by default */
+            padding: 10px 10px 15px 10px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+            background: #fafafa;
+        }
+
+        .step-header.active + .step-description {
+            display: block; /* Show description for active step */
+        }
+        
+        .step-description p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            font-weight: bold; /* Make all step descriptions bold */
+        }
+        
+        .step-description p:last-child {
+            margin-bottom: 0;
+        }
+        
+        /* Button styles */
+        .sim-button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 10px;
+            transition: background-color 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .sim-button:hover {
+            background-color: #0056b3;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .sim-button:disabled {
+            background-color: #c0c0c0;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .sim-button.success {
+            background-color: #28a745;
+        }
+        
+        .sim-button.danger {
+             background-color: #dc3545;
+        }
+        .sim-button.danger:hover {
+             background-color: #c82333;
+        }
+
+        /* Global Nav Buttons */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .global-button {
+            flex-basis: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .global-button.reset {
+            background-color: #dc3545;
+            color: white;
+        }
+        .global-button.reset:hover {
+            background-color: #c82333;
+        }
+        .global-button.menu {
+            background-color: #007bff;
+            color: white;
+        }
+        .global-button.menu:hover {
+            background-color: #0056b3;
+        }
+        
+        /* NEW: Feedback class for interactive step */
+        .feedback {
+            font-weight: bold;
+            color: #004a99; /* Blue */
+            background-color: #f4f8ff;
+            border: 1px solid #b5cde5;
+            border-radius: 8px;
+            padding: 10px;
+            margin-top: 10px;
+            transition: all 0.2s;
+        }
+        .feedback.highlight {
+            color: #d9534f; /* Red/emphasis color */
+            background-color: #fff8f8;
+            border: 1px solid #f0c0c0;
+        }
+        .feedback.success {
+            color: #3c763d; /* Green */
+            background-color: #f4fcf4;
+            border-color: #b5d5b5;
+        }
+        
+        /* Algebra explanation styles */
+        .algebra {
+            background-color: #e6f0ff;
+            border-radius: 8px;
+            padding: 10px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            margin-top: 10px;
+        }
+        .term {
+            font-weight: bold;
+            transition: opacity 0.5s, text-decoration 0.5s, transform 0.2s, background-color 0.2s;
+            display: inline-block; /* Allows transform */
+            padding: 0 2px;
+        }
+        .term.cancelled {
+            opacity: 0.4;
+            text-decoration: line-through;
+        }
+        /* NEW: 3D Highlight Class */
+        .term.highlight-3d {
+            transform: scale(1.8); /* INCREASED ZOOM FOR VISIBILITY */
+            background-color: #fff8e1; /* Light yellow */
+            color: #d9534f; /* Change color to red for emphasis */
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 10;
+            position: relative;
+        }
+        
+        /* NEW a3+b3 colors */
+        .term-a3 { color: #007bff; } /* a³ */
+        .term-b3 { color: #d9534f; } /* b³ */
+        .term-a2b-pos { color: #5cb85c; } /* +a²b */
+        .term-a2b-neg { color: #6c757d; } /* -a²b */
+        .term-ab2-pos { color: #f0ad4e; } /* +ab² */
+        .term-ab2-neg { color: #6c757d; } /* -ab² */
+
+        
+        /* Loading Screen */
+        #loader {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5rem;
+            color: #004a99;
+            z-index: 100;
+        }
+
+        /* Responsive layout for tablet/mobile */
+        @media (max-width: 800px) {
+            .content-area {
+                flex-direction: column; 
+            }
+            
+            .main-container {
+                flex-direction: column; 
+            }
+
+            #scene-container {
+                flex-grow: 1;
+                flex-basis: 60%; 
+                height: 60%;
+                width: 100%;
+            }
+
+            .ui-panel {
+                flex-basis: auto; 
+                flex-grow: 1; 
+                height: 40%;
+                width: 100%;
+                border-left: none;
+                border-top: 1px solid #ccc;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <p><b>The project is supported by TITAN and implemented by KALIKE</b></p>
+        <!-- NEW HEADER -->
+        <p><b>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities.</b></p>
+    </div>
+    
+    <!-- NEW: 3D Formula Container (hidden) -->
+    <div id="formula-container" style="font-size: 24px; padding: 15px; text-align: center; width: 600px; background-color: rgba(255, 255, 255, 0.95); border: 2px solid #004a99; border-radius: 8px; display: none; pointer-events: none;">
+        <span class="term term-a3" id="3d-term-a3">a³</span>
+        <span class="term term-a2b-pos" id="3d-term-a2b-pos">+a²b</span>
+        <span class="term term-ab2-pos" id="3d-term-ab2-pos">+ab²</span>
+        <br> <!-- New line for clarity -->
+        <span class="term term-a2b-neg" id="3d-term-a2b-neg">-a²b</span>
+        <span class="term term-ab2-neg" id="3d-term-ab2-neg">-ab²</span>
+        <span class="term term-b3" id="3d-term-b3">+b³</span>
+    </div>
+    
+    <div class="content-area">
+        <div id="loader">Loading 3D Simulation...</div>
+
+        <div class="main-container">
+            <div id="scene-container"></div>
+
+            <div class="ui-panel">
+                <div class="ui-content">
+                    
+                    <div class="global-nav">
+                        <button class="global-button reset" onclick="location.reload()">Reset</button>
+                        <button class="global-button menu" onclick="location.href='index.html'">Back to Menu</button>
+                    </div>
+
+                    <!-- NEW STEP 0 -->
+                    <div class="step-header active" onclick="goToStep(0)">
+                        <h2>Step 0: Welcome!</h2>
+                    </div>
+                    <div class="step-description" id="step-0-desc">
+                        <!-- UPDATED TEXT -->
+                        <p><b>Hello! This simulation will visually prove the "Sum of Cubes" formula:
+                           <br>a³ + b³ = (a+b)(a² - ab + b²)
+                           <br><br>We will start by looking at our goal: the `a³` and `b³` cubes.</b>
+                        </p>
+                    </div>
+                    
+                    <!-- NEW STEP 1 -->
+                    <div class="step-header" onclick="goToStep(1)">
+                        <h2>Step 1: The Pieces</h2>
+                    </div>
+                    <div class="step-description" id="step-1-desc">
+                        <!-- UPDATED TEXT -->
+                        <p><b>If we expand the right side of the equation, we get 6 algebraic pieces.
+                        <br><br>Click on the cube to separate the individual pieces.
+                        </b></p>
+                        <!-- BUTTON REMOVED, interaction moved to 3D click -->
+                        <div class="feedback" id="step-1-feedback" style="margin-top:10px;">Click the cube shape!</div>
+                    </div>
+                    
+                    <!-- NEW STEP 2 -->
+                    <div class="step-header" onclick="goToStep(2)">
+                        <h2>Step 2: The Cancellation</h2>
+                    </div>
+                    <div class="step-description" id="step-2-desc">
+                        <!-- UPDATED TEXT -->
+                        <p><b>Now, let's cancel the pieces. Interaction is now unlocked.
+                        <br><br>Click a positive piece (like `+a²b`) and then its matching negative piece (`-a²b`) to cancel them out.
+                        </b></p>
+                        
+                        <!-- NEW: Live Formula Progress -->
+                        <div class="algebra" id="live-formula">
+                            <b>Formula: </b>
+                            <span class="term term-a3">a³</span>
+                            <span class="term term-a2b-pos" id="term-a2b-pos">+a²b</span>
+                            <span class="term term-ab2-pos" id="term-ab2-pos">+ab²</span>
+                            <span class="term term-a2b-neg" id="term-a2b-neg">-a²b</span>
+                            <span class="term term-ab2-neg" id="term-ab2-neg">-ab²</span>
+                            <span class="term term-b3">+b³</span>
+                        </div>
+                        
+                        <!-- REMOVED BUTTON, ADDED FEEDBACK DIV -->
+                        <div class="feedback" id="step-2-feedback">Click the green '+a²b' piece to select it.</div>
+                    </div>
+
+                    <!-- NEW STEP 3 -->
+                    <div class="step-header" onclick="goToStep(3)">
+                        <h2>Step 3: The Final Result</h2>
+                    </div>
+                    <div class="step-description" id="step-3-desc">
+                        <p id="step-3-text"><b>What's left?
+                        <br><br>Only the blue `a³` cube and the red `b³` cube remain!</b>
+                        </p>
+                        
+                        <div id="step-3-formula" style="display: none; margin-top: 15px;">
+                            <p><b>And so, we have proved it visually! The 6 pieces simplified to just two:</b></p>
+                            <div class="algebra" style="font-size: 1.1rem; line-height: 1.7; font-weight: bold;">
+                                <span class="term term-a3">a³</span> + 
+                                <span class="term term-b3">b³</span>
+                            </div>
+                            <p style="margin-top: 10px;"><b>Therefore:</b></p>
+                            <div class="algebra" style="font-size: 1.1rem; line-height: 1.7; font-weight: bold;">
+                                <b>(a+b)(a² - ab + b²) = a³ + b³</b>
+                            </div>
+                        </div>
+                        
+                        <button id="step-3-btn-reset" class="sim-button" onclick="goToStep(0)" style="display: none; background-color: #6c757d; margin-top: 5px;">Reset Simulation</button>
+                    </div>
+                    
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <b>Powered by AI and Created by Kalike - An initiative of TATA Trusts.</b>
+    </div>
+
+    <script>
+        
+        let scene, camera, renderer, controls, labelRenderer;
+        let mainGroup; // A group to hold all cubes
+        let currentStep = 0;
+        
+        // NEW: Added raycaster and mouse
+        let raycaster, mouse;
+        
+        const stepState = {
+            step1_shown: false,
+            step1_exploded: false, // NEW State
+            step2_stage: 0, // 0: wait +a²b, 1: wait -a²b, 2: wait +ab², 3: wait -ab², 4: done
+            step2_selectedMesh: null,
+            step3_finished: false
+        };
+        
+        let animatingObjects = []; // Unified animation array
+
+        // NEW Materials for a3+b3
+        const materials = {
+            a_cube: new THREE.MeshLambertMaterial({ color: 0x007bff, userData: { originalColor: 0x007bff } }),
+            b_cube: new THREE.MeshLambertMaterial({ color: 0xd9534f, userData: { originalColor: 0xd9534f } }),
+            a2b_pos: new THREE.MeshLambertMaterial({ color: 0x5cb85c, userData: { originalColor: 0x5cb85c } }),
+            ab2_pos: new THREE.MeshLambertMaterial({ color: 0xf0ad4e, userData: { originalColor: 0xf0ad4e } }),
+            
+            // Negative "ghost" pieces - NOW SOLID
+            a2b_neg: new THREE.MeshLambertMaterial({ color: 0x6c757d, transparent: false, opacity: 1.0, userData: { originalColor: 0x6c757d } }),
+            ab2_neg: new THREE.MeshLambertMaterial({ color: 0x6c757d, transparent: false, opacity: 1.0, userData: { originalColor: 0x6c757d } }),
+            
+            outline: new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }),
+        };
+        
+        const geometries = {};
+        const meshes = {}; // All 6 3D cubes/slabs
+        const labels = {}; // 2D HTML Labels
+        
+        let valA = 5;
+        let valB = 2;
+        
+        const loader = document.getElementById('loader');
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf0f4f8);
+
+            const container = document.getElementById('scene-container');
+            if (!container) return;
+            
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.domElement.style.position = 'relative';
+            renderer.domElement.style.zIndex = 0;
+            container.appendChild(renderer.domElement);
+            
+            labelRenderer = new THREE.CSS2DRenderer(); 
+            labelRenderer.setSize(container.clientWidth, container.clientHeight);
+            labelRenderer.domElement.style.position = 'absolute';
+            labelRenderer.domElement.style.top = '0';
+            labelRenderer.domElement.style.pointerEvents = 'none';
+            labelRenderer.domElement.style.zIndex = 1;
+            container.appendChild(labelRenderer.domElement);
+
+            camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 1000);
+            camera.position.set(10, 10, 10);
+
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(5, 10, 7.5);
+            scene.add(directionalLight);
+
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.1;
+
+            mainGroup = new THREE.Group();
+            scene.add(mainGroup);
+            
+            // NEW: Init raycaster
+            raycaster = new THREE.Raycaster();
+            mouse = new THREE.Vector2();
+            
+            window.addEventListener('resize', onWindowResize);
+            
+            // NEW: Add click listener
+            renderer.domElement.addEventListener('click', onMouseClick);
+            
+            // Build all assets
+            createGeometries();
+            createMeshes();
+            createLabels();
+            
+            // Start
+            goToStep(0);
+            animate();
+            
+            if (loader) loader.style.display = 'none';
+        }
+
+        // Main animation loop
+        function animate() {
+            requestAnimationFrame(animate);
+            runActiveAnimations(); // Run all position/fade animations
+            controls.update();
+            renderer.render(scene, camera);
+            labelRenderer.render(scene, camera);
+        }
+
+        function onWindowResize() {
+            const container = document.getElementById('scene-container');
+            if (!container) return; 
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            labelRenderer.setSize(container.clientWidth, container.clientHeight);
+        }
+        
+        // --- NEW: Click Handling Logic ---
+        function onMouseClick(event) {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+            
+            const objectsToIntersect = mainGroup.children.filter(child => child.isMesh && child.visible);
+            const intersects = raycaster.intersectObjects(objectsToIntersect, false); 
+
+            if (intersects.length > 0) {
+                let clickedObject = intersects[0].object;
+                handleInteraction(clickedObject);
+            }
+        }
+        
+        function getPieceType(mesh) {
+            if (mesh === meshes.a_cube) return 'a_cube';
+            if (mesh === meshes.b_cube) return 'b_cube';
+            if (mesh === meshes.a2b_pos) return 'a2b_pos';
+            if (mesh === meshes.ab2_pos) return 'ab2_pos';
+            if (mesh === meshes.a2b_neg) return 'a2b_neg';
+            if (mesh === meshes.ab2_neg) return 'ab2_neg';
+            return null;
+        }
+
+        // NEW: Helper to highlight 3D formula spans
+        function set3DTermHighlight(term, isHighlighted) {
+            const el = document.getElementById(`3d-term-${term}`);
+            if (el) {
+                if (isHighlighted) {
+                    el.classList.add('highlight-3d');
+                } else {
+                    el.classList.remove('highlight-3d');
+                }
+            }
+        }
+        
+        // NEW: Helper to cancel 3D formula spans
+        function set3DTermCancelled(term1, term2, isCancelled) {
+             const el1 = document.getElementById(`3d-term-${term1}`);
+             const el2 = document.getElementById(`3d-term-${term2}`);
+             if (el1 && el2) {
+                 if (isCancelled) {
+                     el1.classList.add('cancelled');
+                     el2.classList.add('cancelled');
+                 } else {
+                     el1.classList.remove('cancelled');
+                     el2.classList.remove('cancelled');
+                 }
+             }
+        }
+        
+        // NEW: Helper to hide labels for a specific mesh
+        function hideLabelForMesh(mesh) {
+            mesh.children.forEach(child => {
+                if (child.isCSS2DObject) {
+                    child.visible = false;
+                    if(child.element) child.element.style.display = 'none'; 
+                }
+            });
+        }
+        
+        // Helper function to trigger explosion
+        function explodePieces() {
+             const e = valA * 1.2; // Explode factor
+            const yTop = valA * 1.2;
+            const yMid = valA * 0.2;
+            const yBot = -valA * 0.8;
+            
+            const explodedPositions = {
+                a_cube:   new THREE.Vector3(-e, yTop, 0),
+                b_cube:   new THREE.Vector3(e, yTop, 0),
+                a2b_pos:  new THREE.Vector3(-e, yMid, 0),
+                a2b_neg:  new THREE.Vector3(e, yMid, 0),
+                ab2_pos:  new THREE.Vector3(-e, yBot, 0),
+                ab2_neg:  new THREE.Vector3(e, yBot, 0)
+            };
+
+            startAnimation(meshes.a_cube, explodedPositions.a_cube, null, 0.03);
+            startAnimation(meshes.b_cube, explodedPositions.b_cube, null, 0.03);
+            startAnimation(meshes.a2b_pos, explodedPositions.a2b_pos, null, 0.03);
+            startAnimation(meshes.ab2_pos, explodedPositions.ab2_pos, null, 0.03);
+            startAnimation(meshes.a2b_neg, explodedPositions.a2b_neg, null, 0.03);
+            startAnimation(meshes.ab2_neg, explodedPositions.ab2_neg, null, 0.03);
+            
+            // Show labels after a delay
+            setTimeout(() => {
+                setAreaLabels(true); 
+            }, 500);
+        }
+
+        function handleInteraction(clickedObject) {
+            // Allow interaction in Step 1 to explode pieces
+            if (currentStep === 1 && !stepState.step1_exploded) {
+                stepState.step1_exploded = true;
+                explodePieces();
+                updateFeedback(); // Update text to "Pieces Separated!"
+                return;
+            }
+
+            if (currentStep !== 2 || stepState.step2_stage === 4) return; // Only interact in Step 2
+
+            const pieceType = getPieceType(clickedObject);
+            const state = stepState.step2_stage;
+            
+            if (state === 0) { // Waiting for +a²b
+                if (pieceType === 'a2b_pos') {
+                    stepState.step2_selectedMesh = clickedObject;
+                    flashWrong(clickedObject); // Flash to show selection
+                    // FIX: Use hyphens for IDs
+                    set3DTermHighlight('a2b-pos', true); // NEW
+                    stepState.step2_stage = 1;
+                    updateFeedback();
+                } else {
+                    flashWrong(clickedObject);
+                }
+            } 
+            else if (state === 1) { // Waiting for -a²b
+                if (pieceType === 'a2b_neg') {
+                    // Correct pair! Cancel them.
+                    flashWrong(clickedObject); // NEW: Flash second piece
+                    set3DTermHighlight('a2b-neg', true); // NEW
+                    
+                    // NEW: Hide Labels immediately
+                    hideLabelForMesh(stepState.step2_selectedMesh);
+                    hideLabelForMesh(clickedObject);
+                    
+                    const pos1 = new THREE.Vector3().copy(stepState.step2_selectedMesh.position);
+                    const pos2 = new THREE.Vector3().copy(clickedObject.position);
+                    const midPos = new THREE.Vector3().lerpVectors(pos1, pos2, 0.5);
+                    
+                    startAnimation(stepState.step2_selectedMesh, midPos, null, 0.02, 0.3); // Delay anim
+                    startAnimation(clickedObject, midPos, null, 0.02, 0.3);
+                    
+                    // Fade out (with delay)
+                    // FIX: Delay calculation logic (was calculating seconds incorrectly)
+                    // 1.0s is enough for movement (0.8s) + buffer
+                    startAnimation(stepState.step2_selectedMesh, null, 0.0, 0.04, 1.0);
+                    startAnimation(clickedObject, null, 0.0, 0.04, 1.0);
+                    
+                    stepState.step2_selectedMesh = null;
+                    stepState.step2_stage = 2;
+                    
+                    // NEW: Update formula UI (in UI panel)
+                    document.getElementById('term-a2b-pos').classList.add('cancelled');
+                    document.getElementById('term-a2b-neg').classList.add('cancelled');
+                    
+                    // NEW: Update 3D formula UI (with delay)
+                    setTimeout(() => {
+                        set3DTermHighlight('a2b-pos', false);
+                        set3DTermHighlight('a2b-neg', false);
+                        set3DTermCancelled('a2b-pos', 'a2b-neg', true);
+                        updateFeedback(); // Update feedback text *after* animation
+                    }, 300 + (1.0 / 0.02) * 16.7); // ~0.8s
+                    
+                } else {
+                    flashWrong(clickedObject);
+                }
+            } 
+            else if (state === 2) { // Waiting for +ab²
+                if (pieceType === 'ab2_pos') {
+                    stepState.step2_selectedMesh = clickedObject;
+                    flashWrong(clickedObject); // Flash to show selection
+                    set3DTermHighlight('ab2-pos', true); // NEW
+                    stepState.step2_stage = 3;
+                    updateFeedback();
+                } else {
+                    flashWrong(clickedObject);
+                }
+            } 
+            else if (state === 3) { // Waiting for -ab²
+                if (pieceType === 'ab2_neg') {
+                    // Correct pair! Cancel them.
+                    flashWrong(clickedObject);
+                    set3DTermHighlight('ab2-neg', true); // NEW
+                    
+                    // NEW: Hide Labels immediately
+                    hideLabelForMesh(stepState.step2_selectedMesh);
+                    hideLabelForMesh(clickedObject);
+                    
+                    const pos1 = new THREE.Vector3().copy(stepState.step2_selectedMesh.position);
+                    const pos2 = new THREE.Vector3().copy(clickedObject.position);
+                    const midPos = new THREE.Vector3().lerpVectors(pos1, pos2, 0.5);
+                    
+                    startAnimation(stepState.step2_selectedMesh, midPos, null, 0.02, 0.3);
+                    startAnimation(clickedObject, midPos, null, 0.02, 0.3);
+                    
+                    // Fade out (with delay)
+                    // FIX: Delay calculation
+                    startAnimation(stepState.step2_selectedMesh, null, 0.0, 0.04, 1.0);
+                    startAnimation(clickedObject, null, 0.0, 0.04, 1.0);
+                    
+                    stepState.step2_selectedMesh = null;
+                    stepState.step2_stage = 4; // Done
+                    
+                    // NEW: Update formula UI
+                    document.getElementById('term-ab2-pos').classList.add('cancelled');
+                    document.getElementById('term-ab2-neg').classList.add('cancelled');
+                    
+                    // NEW: Update 3D formula UI (with delay)
+                     setTimeout(() => {
+                        set3DTermHighlight('ab2-pos', false);
+                        set3DTermHighlight('ab2-neg', false);
+                        set3DTermCancelled('ab2-pos', 'ab2-neg', true);
+                        updateFeedback(); // Update feedback text
+                    }, 300 + (1.0 / 0.02) * 16.7); // ~0.8s
+                    
+                    // Animate final pieces to center
+                    const e = valA * 1.2; // Explode factor
+                    const yTop = valA * 1.2;
+                    startAnimation(meshes.a_cube, new THREE.Vector3(-e / 2, yTop, 0), null, 0.02, 1.0 / 0.02);
+                    startAnimation(meshes.b_cube, new THREE.Vector3(e / 2, yTop, 0), null, 0.02, 1.0 / 0.02);
+                    
+                    // After a delay, go to step 3
+                    setTimeout(() => goToStep(3), (1.0 / 0.02 + 1.0 / 0.04 + 1.0 / 0.02) * 16.7); // ~2.0s
+                } else {
+                    flashWrong(clickedObject);
+                }
+            }
+        }
+        
+        function flashWrong(mesh) {
+            if (!mesh || !mesh.material || mesh.userData.isFlashing) return;
+
+            mesh.userData.isFlashing = true;
+            const originalColor = mesh.material.userData.originalColor;
+            mesh.material.color.setHex(0xffaa00); // Flash Orange/Yellow
+            setTimeout(() => {
+                if (mesh && mesh.material) {
+                    mesh.material.color.setHex(originalColor);
+                    mesh.userData.isFlashing = false;
+                }
+            }, 300);
+        }
+
+        
+        // --- NEW: Unified Animation System ---
+        function startAnimation(mesh, endPos, endOpacity, speed = 0.05, delay = 0) {
+            // FIX: Check if mesh or material is undefined
+            if (!mesh || !mesh.material) return;
+            
+            if (endOpacity !== null && !mesh.material.transparent) {
+                mesh.material.transparent = true;
+                mesh.material.needsUpdate = true; // Ensure update
+            }
+            const animation = {
+                mesh: mesh,
+                startPos: new THREE.Vector3().copy(mesh.position),
+                endPos: endPos ? new THREE.Vector3().copy(endPos) : null,
+                startOpacity: mesh.material.opacity,
+                endOpacity: endOpacity,
+                progress: 0,
+                speed: speed,
+                delay: delay,
+                onComplete: null 
+            };
+            animatingObjects.push(animation);
+        }
+
+        function runActiveAnimations() {
+            if (animatingObjects.length === 0) return;
+
+            animatingObjects = animatingObjects.filter(item => {
+                // Handle delay
+                if (item.delay > 0) {
+                    item.delay -= 1/60; // Assuming 60fps
+                    return true;
+                }
+
+                item.progress += item.speed;
+                let isComplete = false;
+
+                if (item.progress >= 1) {
+                    item.progress = 1;
+                    isComplete = true;
+                }
+                
+                const easeProgress = 1 - Math.pow(1 - item.progress, 3);
+                
+                if (item.endPos) {
+                    item.mesh.position.lerpVectors(item.startPos, item.endPos, easeProgress);
+                }
+                if (item.endOpacity !== null) {
+                    item.mesh.material.opacity = item.startOpacity + (item.endOpacity - item.startOpacity) * easeProgress;
+                }
+                if (isComplete) {
+                    if (item.endOpacity === 0.0) {
+                        item.mesh.visible = false; 
+                    }
+                    if(item.onComplete) item.onComplete();
+                    return false; // Remove from list
+                }
+                return true; // Keep in list
+            });
+        }
+        
+        
+        // --- Asset Creation ---
+
+        function createGeometries() {
+            // All pieces are 1x1x1, they will be scaled
+            geometries.box = new THREE.BoxGeometry(1, 1, 1);
+        }
+        
+        function createMeshes() { 
+            meshes.a_cube = new THREE.Mesh(geometries.box, materials.a_cube);
+            meshes.b_cube = new THREE.Mesh(geometries.box, materials.b_cube);
+            meshes.a2b_pos = new THREE.Mesh(geometries.box, materials.a2b_pos);
+            meshes.ab2_pos = new THREE.Mesh(geometries.box, materials.ab2_pos);
+            meshes.a2b_neg = new THREE.Mesh(geometries.box, materials.a2b_neg);
+            meshes.ab2_neg = new THREE.Mesh(geometries.box, materials.ab2_neg);
+            
+            mainGroup.add(meshes.a_cube, meshes.b_cube, meshes.a2b_pos, meshes.ab2_pos, meshes.a2b_neg, meshes.ab2_neg);
+            
+            // Add outlines to all
+            for (const mesh of Object.values(meshes)) {
+                const outline = new THREE.LineSegments(
+                    new THREE.EdgesGeometry(mesh.geometry),
+                    materials.outline
+                );
+                mesh.add(outline);
+                mesh.userData.outline = outline;
+            }
+        }
+        
+        function createLabels() {
+            const createLabel = (text, className = 'label') => {
+                const div = document.createElement('div');
+                div.className = className;
+                div.textContent = text;
+                const label = new THREE.CSS2DObject(div); 
+                label.visible = false;
+                return label;
+            };
+            
+            // --- Area Labels ---
+            labels.a_cube = createLabel('a³'); 
+            labels.b_cube = createLabel('b³');
+            labels.a2b_pos = createLabel('+a²b');
+            labels.ab2_pos = createLabel('+ab²');
+            labels.a2b_neg = createLabel('-a²b');
+            labels.ab2_neg = createLabel('-ab²');
+            
+            meshes.a_cube.add(labels.a_cube);
+            meshes.b_cube.add(labels.b_cube);
+            meshes.a2b_pos.add(labels.a2b_pos);
+            meshes.ab2_pos.add(labels.ab2_pos);
+            meshes.a2b_neg.add(labels.a2b_neg);
+            meshes.ab2_neg.add(labels.ab2_neg);
+            
+            // --- NEW: 3D Formula Label ---
+            const formulaEl = document.getElementById('formula-container');
+            // FIX: Add 'label' class for styling, but it's not a piece label
+            formulaEl.classList.add('label'); 
+            labels.formula = new THREE.CSS2DObject(formulaEl);
+            labels.formula.visible = false;
+            mainGroup.add(labels.formula); // Add to main scene group
+
+            // Center all Area labels
+            for (const parent of Object.values(meshes)) { 
+                parent.children.forEach(child => {
+                    // FIX: Check for 'label' class (Area), not 'dim-label'
+                    if (child.isCSS2DObject && child.element.className.includes('label') && !child.element.className.includes('dim-label')) {
+                        child.position.set(0, 0, 0.6); // Position slightly above face
+                    }
+                });
+            }
+        }
+        
+        // --- Asset Updates ---
+        
+        // This function sets the scale and default (hidden) positions
+        function updateAllMeshes(a, b) {
+            valA = a;
+            valB = b;
+            
+            // Set scales
+            meshes.a_cube.scale.set(a, a, a);
+            meshes.b_cube.scale.set(b, b, b);
+            meshes.a2b_pos.scale.set(a, a, b);
+            meshes.ab2_pos.scale.set(a, b, b);
+            meshes.a2b_neg.scale.set(a, a, b);
+            meshes.ab2_neg.scale.set(a, b, b);
+            
+            // Reset positions, opacity, and visibility
+            for (const [key, mesh] of Object.entries(meshes)) {
+                mesh.position.set(0, 0, 0);
+                mesh.visible = false;
+                
+                // Get the material
+                const mat = materials[key];
+                
+                if (mat) {
+                    mesh.material.opacity = mat.opacity;
+                    mesh.material.transparent = mat.transparent;
+                }
+                
+                // Update outlines and labels
+                if (mesh.userData.outline) {
+                    mesh.userData.outline.scale.set(1/mesh.scale.x, 1/mesh.scale.y, 1/mesh.scale.z).clampScalar(0.001, 1000);
+                }
+                mesh.children.forEach(child => { 
+                    if (child.isCSS2DObject) {
+                        child.visible = false; // Reset visibility of all labels initially
+                        if(child.element) child.element.style.display = 'block'; // Ensure display block for potential show
+                        const baseScale = 0.5; 
+                        child.scale.set(baseScale/mesh.scale.x, baseScale/mesh.scale.y, baseScale/mesh.scale.z).clampScalar(0.01, 100);
+                    }
+                });
+            }
+            
+            // NEW: Position 3D formula
+            if (labels.formula) {
+                // FIXED: Moved from 1.6 to 3.0.
+                // Explanation: Top of a_cube is at (1.2 + 0.5)a = 1.7a. 
+                // 3.0a ensures it is well above the pieces.
+                labels.formula.position.set(0, a * 3.0, 0); 
+            }
+        }
+        
+        // --- Step Logic ---
+
+        function setAllLabels(visibility) {
+            for (const label of Object.values(labels)) {
+                // FIX: Check if key includes '_dim'
+                if (label && label.element && !label.element.className.includes('dim-label')) {
+                    label.visible = visibility;
+                    // Ensure the display property is reset so visible=true works
+                    if (visibility && label.element) label.element.style.display = 'block';
+                }
+            }
+        }
+        
+        // ADDED: Missing helper function
+        function setLabelGroupVisibility(labelNames, visibility) {
+            labelNames.forEach(name => {
+                if (labels[name]) {
+                    labels[name].visible = visibility;
+                }
+            });
+        }
+        
+        // NEW: Show/Hide Dimension Labels (NOW DOES NOTHING, but harmless to keep)
+        function setDimensionLabels(visibility) {
+             // Intentionally empty
+        }
+        // NEW: Show/Hide Area Labels
+        function setAreaLabels(visibility) {
+            setAllLabels(visibility); // Now this is the only function
+        }
+
+        function clearScene() {
+            for (const mesh of Object.values(meshes)) {
+                mesh.visible = false;
+            }
+            setAllLabels(false);
+            if (labels.formula) {
+                labels.formula.visible = false; 
+                // FIX: Also hide the element itself to prevent it from blocking clicks
+                labels.formula.element.style.display = 'none'; 
+            }
+            animatingObjects = []; // Clear all animations
+        }
+        
+        // --- Button Handlers ---
+
+        // handleStepClick for button not used in Step 1 anymore, but kept for logic if needed
+
+        // --- Feedback and UI Updates ---
+        function updateFeedback() {
+            // Get buttons
+            const btn1 = document.getElementById('step-1-btn');
+            const feedback1 = document.getElementById('step-1-feedback'); // NEW Step 1 Feedback
+            const feedback2 = document.getElementById('step-2-feedback'); 
+            const formula3 = document.getElementById('step-3-formula');
+            const reset3 = document.getElementById('step-3-btn-reset');
+            
+            // NEW: Get live formula terms
+            const term_a2b_pos = document.getElementById('term-a2b-pos');
+            const term_a2b_neg = document.getElementById('term-a2b-neg');
+            const term_ab2_pos = document.getElementById('term-ab2-pos');
+            const term_ab2_neg = document.getElementById('term-ab2-neg');
+            
+            // NEW: Get 3D formula terms
+            const all3DTerms = document.querySelectorAll('#formula-container .term');
+            all3DTerms.forEach(term => {
+                term.classList.remove('cancelled');
+                term.classList.remove('highlight-3d');
+            });
+            
+            // Step 1 Button and Feedback
+            if (btn1) {
+                 // Button removed in HTML, logic kept just in case
+                btn1.disabled = stepState.step1_exploded;
+                btn1.className = stepState.step1_exploded ? "sim-button success" : "sim-button";
+                btn1.textContent = stepState.step1_exploded ? "Pieces Separated!" : "Separate Pieces";
+            }
+            if (feedback1) {
+                feedback1.textContent = stepState.step1_exploded ? "Pieces Separated!" : "Click the cube shape!";
+                feedback1.className = stepState.step1_exploded ? "feedback success" : "feedback";
+            }
+            
+            // Step 2 Feedback
+            if (feedback2) {
+                // Reset formula styles
+                if (term_a2b_pos) term_a2b_pos.classList.remove('cancelled');
+                if (term_a2b_neg) term_a2b_neg.classList.remove('cancelled');
+                if (term_ab2_pos) term_ab2_pos.classList.remove('cancelled');
+                if (term_ab2_neg) term_ab2_neg.classList.remove('cancelled');
+                
+                switch (stepState.step2_stage) {
+                    case 0:
+                        feedback2.textContent = "Click the green '+a²b' piece to select it.";
+                        feedback2.className = "feedback";
+                        break;
+                    case 1:
+                        feedback2.textContent = "Great! Now click the matching gray '-a²b' piece.";
+                        feedback2.className = "feedback highlight";
+                        // FIX: Ensure highlight persists
+                        set3DTermHighlight('a2b-pos', true); 
+                        break;
+                    case 2:
+                        feedback2.textContent = "Perfect! Now click the yellow '+ab²' piece.";
+                        feedback2.className = "feedback";
+                        if (term_a2b_pos) term_a2b_pos.classList.add('cancelled'); // Keep cancelled
+                        if (term_a2b_neg) term_a2b_neg.classList.add('cancelled');
+                        set3DTermCancelled('a2b-pos', 'a2b-neg', true); // NEW
+                        break;
+                    case 3:
+                        feedback2.textContent = "Excellent! Click the matching gray '-ab²' piece.";
+                        feedback2.className = "feedback highlight";
+                        if (term_a2b_pos) term_a2b_pos.classList.add('cancelled'); // Keep cancelled
+                        if (term_a2b_neg) term_a2b_neg.classList.add('cancelled');
+                        set3DTermCancelled('a2b-pos', 'a2b-neg', true); // NEW
+                        // FIX: Ensure highlight persists
+                        set3DTermHighlight('ab2-pos', true);
+                        break;
+                    case 4:
+                        feedback2.textContent = "All done! Moving to the final step...";
+                        feedback2.className = "feedback success";
+                        if (term_a2b_pos) term_a2b_pos.classList.add('cancelled'); // Keep all cancelled
+                        if (term_a2b_neg) term_a2b_neg.classList.add('cancelled');
+                        if (term_ab2_pos) term_ab2_pos.classList.add('cancelled');
+                        if (term_ab2_neg) term_ab2_neg.classList.add('cancelled'); // FIX: Was 'ci'
+                        set3DTermCancelled('a2b-pos', 'a2b-neg', true); // NEW
+                        set3DTermCancelled('ab2-pos', 'ab2-neg', true); // NEW
+                        break;
+                }
+            }
+            
+            // Step 3 (Final Result)
+            if (formula3 && reset3) {
+                formula3.style.display = stepState.step3_finished ? 'block' : 'none';
+                reset3.style.display = stepState.step3_finished ? 'block' : 'none';
+            }
+        }
+        
+        // This function is now globally accessible from the HTML onclick
+        window.goToStep = function(step) {
+            currentStep = step;
+            
+            // Update UI panels
+            document.querySelectorAll('.step-header').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.step-description').forEach(el => el.style.display = 'none');
+            
+            const currentHeader = document.querySelector(`.step-header[onclick="goToStep(${step})"]`);
+            if (currentHeader) currentHeader.classList.add('active');
+            
+            const currentDesc = document.getElementById(`step-${step}-desc`);
+            if (currentDesc) currentDesc.style.display = 'block';
+            
+            // 1. Reset all scales (positions are reset in clearScene/animations)
+            updateAllMeshes(valA, valB);
+            
+            // 2. Hide everything
+            clearScene();
+            
+            // 3. Set camera
+            // FIXED: Zoomed out slightly (factor 3.8) and panned up (target 1.5) to frame the higher formula
+            camera.position.set(valA * 3.8, valA * 2.5, valA * 3.8); 
+            controls.target.set(0, valA * 1.5, 0); 
+            controls.enableRotate = true;
+            controls.enableZoom = true;
+            controls.update(); 
+            
+            // 4. Selectively show and position pieces for the current step
+            // NEW Explode Positions (clear grid)
+            const e = valA * 1.2; // Explode factor
+            const yTop = valA * 1.2;
+            const yMid = valA * 0.2;
+            const yBot = -valA * 0.8;
+            
+            const explodedPositions = {
+                a_cube:   new THREE.Vector3(-e, yTop, 0),
+                b_cube:   new THREE.Vector3(e, yTop, 0),
+                a2b_pos:  new THREE.Vector3(-e, yMid, 0),
+                a2b_neg:  new THREE.Vector3(e, yMid, 0),
+                ab2_pos:  new THREE.Vector3(-e, yBot, 0),
+                ab2_neg:  new THREE.Vector3(e, yBot, 0)
+            };
+
+            
+            switch(step) {
+                case 0: // Welcome
+                    // Reset all states
+                    stepState.step1_shown = false;
+                    stepState.step2_stage = 0;
+                    stepState.step2_selectedMesh = null;
+                    stepState.step3_finished = false;
+                    
+                    // NEW: Show just a3 and b3
+                    meshes.a_cube.visible = true;
+                    meshes.b_cube.visible = true;
+                    labels.a_cube.visible = true;
+                    labels.b_cube.visible = true;
+                    startAnimation(meshes.a_cube, new THREE.Vector3(-e / 2, yTop, 0), null, 0.03);
+                    startAnimation(meshes.b_cube, new THREE.Vector3(e / 2, yTop, 0), null, 0.03);
+                    break;
+                case 1: // Show all 6 pieces (Initially Clustered)
+                    stepState.step1_exploded = false;
+                    stepState.step1_shown = true;
+                    
+                    // Set visible
+                    for (const mesh of Object.values(meshes)) { mesh.visible = true; }
+                    setAreaLabels(false); // Hide labels initially
+                    labels.formula.visible = true; 
+                    document.getElementById('formula-container').style.display = 'block'; 
+                    
+                    // Start at Center (0,0,0)
+                    // (No animation needed as updateAllMeshes puts them at 0,0,0)
+                    
+                    break;
+                    
+                case 2: // The Cancellation
+                    // Set all pieces to their "Step 1" exploded positions *instantly*
+                    for (const mesh of Object.values(meshes)) { mesh.visible = true; }
+                    setAreaLabels(true);
+                    
+                    // FIX: Show 3D formula during interaction
+                    labels.formula.visible = true; 
+                    document.getElementById('formula-container').style.display = 'block'; 
+                    
+                    meshes.a_cube.position.copy(explodedPositions.a_cube);
+                    meshes.b_cube.position.copy(explodedPositions.b_cube);
+                    meshes.a2b_pos.position.copy(explodedPositions.a2b_pos);
+                    meshes.ab2_pos.position.copy(explodedPositions.ab2_pos);
+                    meshes.a2b_neg.position.copy(explodedPositions.a2b_neg);
+                    meshes.ab2_neg.position.copy(explodedPositions.ab2_neg);
+
+                    // Reset interaction state
+                    stepState.step2_stage = 0;
+                    stepState.step2_selectedMesh = null;
+                    break;
+
+                case 3: // The Final Result
+                    stepState.step3_finished = true;
+                    
+                    // Instantly show final pieces in their "final" position
+                    meshes.a_cube.visible = true;
+                    meshes.b_cube.visible = true;
+                    setAreaLabels(true);
+                    labels.formula.visible = true; // NEW
+                    document.getElementById('formula-container').style.display = 'block'; // NEW: Show 3D formula
+                    
+                    meshes.a_cube.position.set(-e / 2, yTop, 0); // Use final positions from animation
+                    meshes.b_cube.position.set(e / 2, yTop, 0);
+                    
+                    // Hide all other pieces
+                    meshes.a2b_pos.visible = false;
+                    meshes.ab2_pos.visible = false;
+                    meshes.a2b_neg.visible = false;
+                    meshes.ab2_neg.visible = false;
+                    // (their labels are hidden automatically as children)
+                    setLabelGroupVisibility(['a2b_pos', 'ab2_pos', 'a2b_neg', 'ab2_neg'], false); // Also hide area labels
+                    
+                    break;
+            }
+            
+            updateFeedback(); // Update all button states
+        }
+
+        // --- Start ---
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+        
+    </script>
+</body>
+</html>
