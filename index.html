@@ -107,7 +107,7 @@
             overflow: hidden;
         }
 
-        .identity-preview-canvas { width: 100%; height: 100%; object-fit: contain; }
+        .identity-preview-canvas { width: 100%; height: 100%; display: block; }
         .identity-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
 
         .identity-name { font-size: 1.25rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.5rem; }
@@ -178,17 +178,55 @@
         };
 
         // ===========================
-        // INIT
+        // Helpers: DPR canvas sizing & redraw
         // ===========================
-        let menuView;
-        window.onload = () => {
-            menuView = document.getElementById('identity-menu');
-            createIdentityMenu();
-        };
+        function setupCanvasForDPR(canvas) {
+            // make canvas fill its container visually
+            canvas.style.width = '100%';
+            canvas.style.height = '100%';
+
+            const rect = canvas.getBoundingClientRect();
+            // if rect has 0 size, bail - nothing to do
+            if (rect.width === 0 || rect.height === 0) return;
+
+            const dpr = window.devicePixelRatio || 1;
+            const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
+            const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
+
+            if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+                canvas.width = pixelWidth;
+                canvas.height = pixelHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale to CSS px
+            }
+        }
+
+        // Throttled resize: update all canvases on resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                document.querySelectorAll('.identity-preview-canvas').forEach(canvas => {
+                    setupCanvasForDPR(canvas);
+                    const card = canvas.closest('.identity-card');
+                    if (card) {
+                        const id = card.dataset.id;
+                        const identity = IDENTITIES.find(it => it.id === id);
+                        if (identity) drawIdentityPreview(canvas, identity);
+                    }
+                });
+            }, 120);
+        });
 
         // ===========================
-        // CREATE MENU
+        // INIT & MENU CREATION
         // ===========================
+        let menuView;
+        window.addEventListener('DOMContentLoaded', () => {
+            menuView = document.getElementById('identity-menu');
+            createIdentityMenu();
+        });
+
         function createIdentityMenu() {
             menuView.innerHTML = '';
 
@@ -203,7 +241,6 @@
                     wrapper.href = filename ? `./${filename}` : `./sim_${identity.id}.html`;
                     wrapper.style.textDecoration = 'none';
                     wrapper.style.color = 'inherit';
-                    // If you want it to open in new tab: wrapper.target = '_blank';
                 }
 
                 const card = document.createElement('div');
@@ -214,25 +251,25 @@
                 const preview = document.createElement('div');
                 preview.className = 'identity-preview';
 
-                // SPECIAL: Use difference_of_cubes.png as preview for the Difference of Cubes identity
+                // Image preview for difference of cubes and cube-of-difference
                 if (identity.id === 'a_cu_minus_b_cu') {
                     const img = document.createElement('img');
                     img.className = 'identity-preview-img';
                     img.alt = identity.name + ' preview';
-                    img.src = './difference_of_cubes.png'; // <-- put the attached image at this path
+                    img.src = './difference_of_cubes.png'; // place this file in same folder
                     preview.appendChild(img);
                 } else if (identity.id === 'a_minus_b_cu') {
-                    // existing special preview for cube of a difference
+                    // existing special preview (formulae.png)
                     const img = document.createElement('img');
                     img.className = 'identity-preview-img';
                     img.alt = identity.name + ' preview';
-                    img.src = './formulae.png'; // Ensure formulae.png is in same folder as index.html
+                    img.src = './formulae.png';
                     preview.appendChild(img);
                 } else {
+                    // canvas preview for others
                     const previewCanvas = document.createElement('canvas');
                     previewCanvas.className = 'identity-preview-canvas';
-                    previewCanvas.width = 240;
-                    previewCanvas.height = 120;
+                    // do NOT set width/height attributes here; size via setupCanvasForDPR
                     preview.appendChild(previewCanvas);
                 }
 
@@ -261,30 +298,38 @@
                 wrapper.appendChild(card);
                 menuView.appendChild(wrapper);
 
-                // Draw preview canvas for non-image cards
-                if (identity.id !== 'a_cu_minus_b_cu' && identity.id !== 'a_minus_b_cu') {
-                    requestAnimationFrame(() => {
-                        const canvasOnCard = card.querySelector('.identity-preview-canvas');
-                        if (canvasOnCard) drawIdentityPreview(canvasOnCard, identity);
-                    });
-                }
+                // After adding to DOM, setup canvas sizing and draw (if canvas)
+                requestAnimationFrame(() => {
+                    const canvasOnCard = card.querySelector('.identity-preview-canvas');
+                    if (canvasOnCard) {
+                        setupCanvasForDPR(canvasOnCard);
+                        drawIdentityPreview(canvasOnCard, identity);
+                    }
+                });
             });
         }
 
         // ===========================
-        // DRAW PREVIEWS
+        // DRAWING: draws in CSS px space (context scaled to CSS px by setupCanvasForDPR)
         // ===========================
         function drawIdentityPreview(previewCanvas, identity) {
             const pCtx = previewCanvas.getContext('2d');
-            const w = previewCanvas.width;
-            const h = previewCanvas.height;
+            // use clientWidth/clientHeight (CSS px) as drawing coordinates
+            const w = previewCanvas.clientWidth || parseInt(previewCanvas.style.width) || 240;
+            const h = previewCanvas.clientHeight || parseInt(previewCanvas.style.height) || 120;
+
+            // Clear full CSS area
             pCtx.clearRect(0, 0, w, h);
+
+            // CSS px fonts
             pCtx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
             pCtx.textAlign = 'center';
             pCtx.textBaseline = 'middle';
 
-            const a = 60, b = 40, c = 25;
-            const a_minus_b = a - b;
+            const a = Math.min(70, Math.round(w * 0.33));
+            const b = Math.round(a * 0.6);
+            const c = Math.round(b * 0.6);
+            const a_minus_b = Math.max(6, a - b);
             const x_base = (w - a) / 2;
             const y_base = (h - a) / 2;
 
@@ -301,13 +346,13 @@
 
                 case 'a_plus_b_cu':
                     pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(95, 25, 40, 40); // a^3
+                    pCtx.fillRect(w * 0.4, h * 0.12, a * 0.6, a * 0.6); // a^3
                     pCtx.fillStyle = '#F39C12';
-                    pCtx.fillRect(70, 80, 25, 25); // b^3
+                    pCtx.fillRect(w * 0.28, h * 0.7, b * 0.5, b * 0.5); // b^3
                     pCtx.fillStyle = '#1ABC9C';
-                    pCtx.fillRect(50, 18, 40, 30); // a^2b
+                    pCtx.fillRect(w * 0.18, h * 0.1, a * 0.6, a * 0.45); // a^2b
                     pCtx.fillStyle = '#2ECC71';
-                    pCtx.fillRect(145, 75, 30, 30); // ab^2
+                    pCtx.fillRect(w * 0.72, h * 0.6, b * 0.55, b * 0.55); // ab^2
                     break;
 
                 case 'a_minus_b_sq':
@@ -316,15 +361,16 @@
                     pCtx.fillStyle = '#E74C3C';
                     pCtx.fillRect(x_base + a_minus_b, y_base + a_minus_b, b, b);
                     pCtx.fillStyle = 'black';
-                    pCtx.font = 'bold 11px -apple-system';
+                    pCtx.font = 'bold 11px -apple-system, sans-serif';
                     pCtx.fillText("(a-b)²", x_base + a_minus_b / 2, y_base + a_minus_b / 2);
                     pCtx.fillText("b²", x_base + a_minus_b + b / 2, y_base + a_minus_b + b / 2);
                     break;
 
                 case 'a_sq_minus_b_sq':
-                    const sim_a = 70, sim_b = 35;
+                    const sim_a = Math.round(Math.min(w * 0.55, 90));
+                    const sim_b = Math.round(sim_a * 0.5);
                     const sim_a_plus_b = sim_a + sim_b;
-                    const sim_a_minus_b = sim_a - sim_b;
+                    const sim_a_minus_b = Math.max(12, sim_a - sim_b);
                     const rect_w = sim_a_plus_b;
                     const rect_h = sim_a_minus_b;
                     const rect_x = (w - rect_w) / 2;
@@ -334,17 +380,17 @@
                     pCtx.fillStyle = '#1ABC9C';
                     pCtx.fillRect(rect_x + sim_a, rect_y, sim_b, sim_a_minus_b);
                     pCtx.fillStyle = 'black';
-                    pCtx.font = 'bold 12px -apple-system';
-                    pCtx.fillText("a", rect_x + sim_a / 2, rect_y - 25);
-                    pCtx.fillText("b", rect_x + sim_a + sim_b / 2, rect_y - 25);
+                    pCtx.font = 'bold 12px -apple-system, sans-serif';
+                    pCtx.fillText("a", rect_x + sim_a / 2, rect_y - 18);
+                    pCtx.fillText("b", rect_x + sim_a + sim_b / 2, rect_y - 18);
                     break;
 
                 case 'a_plus_b_plus_c_sq':
-                    const s = 100;
+                    const s = Math.min(110, w * 0.85);
                     const total = a + b + c;
-                    const s_a = s * (a / total);
-                    const s_b = s * (b / total);
-                    const s_c = s * (c / total);
+                    const s_a = Math.round(s * (a / total));
+                    const s_b = Math.round(s * (b / total));
+                    const s_c = Math.round(s * (c / total));
                     const s_x = (w - s) / 2;
                     const s_y = (h - s) / 2;
                     pCtx.fillStyle = '#2E86C1'; pCtx.fillRect(s_x, s_y, s_a, s_a);
@@ -354,31 +400,42 @@
                     pCtx.fillStyle = '#1ABC9C'; pCtx.fillRect(s_x, s_y + s_a, s_a, s_b);
                     break;
 
-                // NEW: Sum of Cubes Preview
                 case 'a_cu_plus_b_cu':
-                    // Mimic the exploded 3D view
-                    const startX = 75;
-                    const startY = 20;
-                    
-                    // --- Left Stack (a group) ---
-                    // Blue Cube (a^3)
-                    pCtx.fillStyle = '#007bff'; 
-                    pCtx.fillRect(startX, startY, 40, 40);
+                    // simple stacked preview to suggest exploded view
+                    const startX = Math.max(30, w * 0.22);
+                    const startY = Math.max(8, h * 0.08);
+                    // left: a group
+                    pCtx.fillStyle = '#007bff';
+                    pCtx.fillRect(startX, startY, Math.min(48, a * 0.85), Math.min(48, a * 0.85));
                     pCtx.fillStyle = 'white'; pCtx.font = 'bold 12px sans-serif'; pCtx.fillText("a³", startX + 20, startY + 20);
-                    
-                    // Green (a^2b)
-                    pCtx.fillStyle = '#5cb85c'; 
-                    pCtx.fillRect(startX, startY + 42, 40, 25);
-                    
-                    // Yellow (ab^2)
-                    pCtx.fillStyle = '#f0ad4e'; 
-                    pCtx.fillRect(startX, startY + 69, 40, 20);
-                    
-                    // --- Right Stack (b group) ---
-                    const rightX = startX + 60;
-                    const rightY = startY + 10;
-                    
-                    // Red Cube (b^3)
-                    pCtx.fillStyle = '#d9534f'; 
-                    pCtx.fillRect(rightX, rightY, 30, 30);
-                    pCtx.fillStyle = 'white'; pCtx.fillText
+                    pCtx.fillStyle = '#5cb85c';
+                    pCtx.fillRect(startX, startY + 44, Math.min(48, a * 0.75), 22);
+                    pCtx.fillStyle = '#f0ad4e';
+                    pCtx.fillRect(startX, startY + 70, Math.min(48, a * 0.6), 18);
+                    // right: b group
+                    const rightX = startX + Math.min(48, a * 0.85) + 34;
+                    const rightY = startY + 12;
+                    pCtx.fillStyle = '#d9534f';
+                    pCtx.fillRect(rightX, rightY, Math.min(36, b * 0.85), Math.min(36, b * 0.85));
+                    pCtx.fillStyle = 'white'; pCtx.fillText("b³", rightX + 15, rightY + 15);
+                    pCtx.fillStyle = '#6c757d';
+                    pCtx.fillRect(rightX, rightY + 36, Math.min(36, b * 0.85), 38);
+                    pCtx.fillRect(rightX, rightY + 78, Math.min(36, b * 0.85), 22);
+                    break;
+
+                default:
+                    pCtx.fillStyle = '#333333';
+                    pCtx.font = 'bold 16px monospace';
+                    const parts = (identity.formula || '').split('=');
+                    if (parts.length === 2) {
+                        pCtx.fillText(parts[0], w / 2, h / 2 - 10);
+                        pCtx.fillText('=', w / 2, h / 2 + 8);
+                        pCtx.fillText(parts[1], w / 2, h / 2 + 26);
+                    } else {
+                        pCtx.fillText(identity.formula || identity.name, w / 2, h / 2);
+                    }
+            }
+        }
+    </script>
+</body>
+</html>
