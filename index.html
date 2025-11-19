@@ -155,7 +155,9 @@
             // 7th: Sum of cubes (NOW COMPLETE)
             { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'complete', type: 'stepped' },
 
-            { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'coming-soon', type: 'stepped' },
+            // 8th: Difference of Cubes - READY NOW (changed to complete and links to a9.html)
+            { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'complete', type: 'stepped' },
+
             { id: 'x_plus_y_sq_plus_x_minus_y_sq', name: 'Sum of Squares (Expanded)', formula: '(x + y)² + (x - y)² = 2(x² + y²)', status: 'coming-soon', type: 'stepped' },
             { id: 'x_plus_y_sq_minus_x_minus_y_sq', name: 'Difference of Squares (Expanded)', formula: '(x + y)² - (x - y)² = 4xy', status: 'coming-soon', type: 'stepped' },
             { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'coming-soon', type: 'stepped' },
@@ -169,10 +171,10 @@
             'a_sq_minus_b_sq': 'a3.html',
             'a_plus_b_plus_c_sq': 'a4.html',
             'a_plus_b_cu': 'a6.html',
-            // 6th identity -> a7.html
             'a_minus_b_cu': 'a7.html',
-            // 7th identity -> a8.html
-            'a_cu_plus_b_cu': 'a8.html'
+            'a_cu_plus_b_cu': 'a8.html',
+            // newly ready difference of cubes
+            'a_cu_minus_b_cu': 'a9.html'
         };
 
         // ===========================
@@ -212,8 +214,15 @@
                 const preview = document.createElement('div');
                 preview.className = 'identity-preview';
 
-                // SPECIAL: Use formulae.png as preview for the 6th identity (a_minus_b_cu)
-                if (identity.id === 'a_minus_b_cu') {
+                // SPECIAL: Use difference_of_cubes.png as preview for the Difference of Cubes identity
+                if (identity.id === 'a_cu_minus_b_cu') {
+                    const img = document.createElement('img');
+                    img.className = 'identity-preview-img';
+                    img.alt = identity.name + ' preview';
+                    img.src = './difference_of_cubes.png'; // <-- put the attached image at this path
+                    preview.appendChild(img);
+                } else if (identity.id === 'a_minus_b_cu') {
+                    // existing special preview for cube of a difference
                     const img = document.createElement('img');
                     img.className = 'identity-preview-img';
                     img.alt = identity.name + ' preview';
@@ -253,7 +262,7 @@
                 menuView.appendChild(wrapper);
 
                 // Draw preview canvas for non-image cards
-                if (identity.id !== 'a_minus_b_cu') {
+                if (identity.id !== 'a_cu_minus_b_cu' && identity.id !== 'a_minus_b_cu') {
                     requestAnimationFrame(() => {
                         const canvasOnCard = card.querySelector('.identity-preview-canvas');
                         if (canvasOnCard) drawIdentityPreview(canvasOnCard, identity);
@@ -372,30 +381,4 @@
                     // Red Cube (b^3)
                     pCtx.fillStyle = '#d9534f'; 
                     pCtx.fillRect(rightX, rightY, 30, 30);
-                    pCtx.fillStyle = 'white'; pCtx.fillText("b³", rightX + 15, rightY + 15);
-
-                    // Gray (-a^2b) - taller block
-                    pCtx.fillStyle = '#6c757d'; 
-                    pCtx.fillRect(rightX, rightY + 32, 30, 40); 
-                    
-                    // Gray (-ab^2) - shorter block
-                    pCtx.fillStyle = '#6c757d'; 
-                    pCtx.fillRect(rightX, rightY + 74, 30, 25);
-                    break;
-
-                default:
-                    pCtx.fillStyle = '#333333';
-                    pCtx.font = 'bold 16px monospace';
-                    const parts = (identity.formula || '').split('=');
-                    if (parts.length === 2) {
-                        pCtx.fillText(parts[0], w / 2, h / 2 - 10);
-                        pCtx.fillText('=', w / 2, h / 2 + 8);
-                        pCtx.fillText(parts[1], w / 2, h / 2 + 26);
-                    } else {
-                        pCtx.fillText(identity.formula || identity.name, w / 2, h / 2);
-                    }
-            }
-        }
-    </script>
-</body>
-</html>
+                    pCtx.fillStyle = 'white'; pCtx.fillText
