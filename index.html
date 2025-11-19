@@ -2,40 +2,31 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kanya Sampoorna Project - Math Simulation</title>
   <style>
-    :root{
-      --header-height:120px;
-      --footer-height:50px;
-      --font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-      --color-primary:#005A9C;
-      --color-text-light:#FFFFFF;
-      --color-text-dark:#333333;
-      --color-bg-light:#F4F9FF;
-      --color-border:#DDDDDD;
-    }
-    *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;width:100%;font-family:var(--font-sans);background-color:var(--color-bg-light);color:var(--color-text-dark);overflow:hidden}
-    .app-container{display:flex;flex-direction:column;height:100%;width:100%}
-    .header{width:100%;height:var(--header-height);background-color:var(--color-primary);color:var(--color-text-light);text-align:center;padding:1rem;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:center;line-height:1.4}
-    .header h1{font-size:clamp(1.2rem,3.5vw,1.8rem);margin:0}
-    .header p{font-size:clamp(0.9rem,2.5vw,1.1rem);margin:0}
-    .main-content{width:100%;flex-grow:1;overflow-y:auto;overflow-x:hidden;padding:1.5rem}
-    .footer{width:100%;height:var(--footer-height);background-color:var(--color-primary);color:var(--color-text-light);text-align:center;padding:1rem;flex-shrink:0;display:flex;justify-content:center;align-items:center;font-size:clamp(0.8rem,2vw,1rem)}
-    #identity-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1200px;margin:0 auto}
-    .identity-card{background-color:#fff;border:1px solid var(--color-border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;justify-content:space-between;min-height:280px}
-    .identity-card:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,90,156,.15)}
-    .identity-preview{width:100%;height:120px;margin-bottom:1rem;border:1px solid var(--color-border);border-radius:8px;background-color:#fdfdfd;display:flex;align-items:center;justify-content:center;overflow:hidden}
-    .identity-preview-canvas{width:100%;height:100%;display:block}
-    .identity-preview-img{max-width:100%;max-height:100%;object-fit:contain;display:block}
-    .identity-name{font-size:1.25rem;font-weight:600;color:var(--color-primary);margin-bottom:.5rem}
-    .identity-formula{font-size:1.1rem;font-weight:500;color:var(--color-text-dark);font-family:monospace;margin-bottom:1rem}
-    .status-badge{font-size:.9rem;font-weight:600;padding:.5em 1em;border-radius:20px;align-self:center;margin-top:auto}
-    .status-badge.complete{background-color:#E8F5E9;color:#2E7D32}
-    .status-badge.coming-soon{background-color:#FFF3E0;color:#E65100}
-    a.identity-card-link-wrapper{text-decoration:none;color:inherit;display:block}
-    div.identity-card-link-wrapper{display:block}
+    :root { --header-height: 120px; --footer-height: 50px; --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol"; --color-primary: #005A9C; --color-text-light: #FFFFFF; --color-text-dark: #333333; --color-bg-light: #F4F9FF; --color-border: #DDDDDD; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; width: 100%; font-family: var(--font-sans); background-color: var(--color-bg-light); color: var(--color-text-dark); overflow: hidden; }
+    .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
+    .header { width: 100%; height: var(--header-height); background-color: var(--color-primary); color: var(--color-text-light); text-align: center; padding: 1rem; flex-shrink: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; line-height: 1.4; }
+    .header h1 { font-size: clamp(1.2rem, 3.5vw, 1.8rem); margin: 0; }
+    .header p { font-size: clamp(0.9rem, 2.5vw, 1.1rem); margin: 0; }
+    .main-content { width: 100%; flex-grow: 1; overflow-y: auto; overflow-x: hidden; padding: 1.5rem; }
+    .footer { width: 100%; height: var(--footer-height); background-color: var(--color-primary); color: var(--color-text-light); text-align: center; padding: 1rem; flex-shrink: 0; display: flex; justify-content: center; align-items: center; font-size: clamp(0.8rem, 2vw, 1rem); }
+    #identity-menu { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; max-width: 1200px; margin: 0 auto; }
+    .identity-card { background-color: #FFFFFF; border: 1px solid var(--color-border); border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; transition: transform 0.2s ease, box-shadow 0.2s ease; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); display: flex; flex-direction: column; justify-content: space-between; min-height: 280px; }
+    .identity-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 90, 156, 0.15); }
+    .identity-preview { width: 100%; height: 120px; margin-bottom: 1rem; border: 1px solid var(--color-border); border-radius: 8px; background-color: #fdfdfd; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .identity-preview-canvas { width: 100%; height: 100%; display: block; }
+    .identity-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
+    .identity-name { font-size: 1.25rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.5rem; }
+    .identity-formula { font-size: 1.1rem; font-weight: 500; color: var(--color-text-dark); font-family: monospace; margin-bottom: 1rem; }
+    .status-badge { font-size: 0.9rem; font-weight: 600; padding: 0.5em 1em; border-radius: 20px; align-self: center; margin-top: auto; }
+    .status-badge.complete { background-color: #E8F5E9; color: #2E7D32; }
+    .status-badge.coming-soon { background-color: #FFF3E0; color: #E65100; }
+    a.identity-card-link-wrapper { text-decoration: none; color: inherit; display: block; }
+    div.identity-card-link-wrapper { display: block; }
   </style>
 </head>
 <body>
@@ -72,7 +63,7 @@
       // sum of cubes
       { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'complete', type: 'stepped' },
 
-      // difference of cubes
+      // difference of cubes - now marked complete and links to a9.html
       { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'complete', type: 'stepped' },
 
       // 9th: Sum of Squares (Expanded) — READY NOW (show attached image as preview and link to a10.html)
@@ -163,15 +154,21 @@
         const preview = document.createElement('div');
         preview.className = 'identity-preview';
 
-        // Special image previews
-        if (identity.id === 'x_plus_y_sq_plus_x_minus_y_sq') {
-          // Use the attached preview image for Sum of Squares (Expanded)
+        // Use image previews for the two attached visuals, otherwise canvas
+        if (identity.id === 'a_cu_minus_b_cu') {
           const img = document.createElement('img');
           img.className = 'identity-preview-img';
           img.alt = identity.name + ' preview';
-          img.src = './sum_of_squares_expanded.png'; // <-- put the attached image under this name in same folder
+          img.src = './difference_of_cubes.png'; // place file here
+          preview.appendChild(img);
+        } else if (identity.id === 'x_plus_y_sq_plus_x_minus_y_sq') {
+          const img = document.createElement('img');
+          img.className = 'identity-preview-img';
+          img.alt = identity.name + ' preview';
+          img.src = './sum_of_squares_expanded.png'; // place file here
           preview.appendChild(img);
         } else if (identity.id === 'a_minus_b_cu') {
+          // existing special preview
           const img = document.createElement('img');
           img.className = 'identity-preview-img';
           img.alt = identity.name + ' preview';
