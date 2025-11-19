@@ -152,8 +152,8 @@
             // 6th: Cube of a Difference (COMPLETE) — show formulae.png here and link to a7.html
             { id: 'a_minus_b_cu', name: 'Cube of a Difference', formula: '(a - b)³ = a³ - 3a²b + 3ab² - b³', status: 'complete', type: 'stepped' },
 
-            // 7th: Sum of cubes (kept coming-soon by default)
-            { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'coming-soon', type: 'stepped' },
+            // 7th: Sum of cubes (NOW COMPLETE)
+            { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'complete', type: 'stepped' },
 
             { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'coming-soon', type: 'stepped' },
             { id: 'x_plus_y_sq_plus_x_minus_y_sq', name: 'Sum of Squares (Expanded)', formula: '(x + y)² + (x - y)² = 2(x² + y²)', status: 'coming-soon', type: 'stepped' },
@@ -170,7 +170,9 @@
             'a_plus_b_plus_c_sq': 'a4.html',
             'a_plus_b_cu': 'a6.html',
             // 6th identity -> a7.html
-            'a_minus_b_cu': 'a7.html'
+            'a_minus_b_cu': 'a7.html',
+            // 7th identity -> a8.html
+            'a_cu_plus_b_cu': 'a8.html'
         };
 
         // ===========================
@@ -341,6 +343,44 @@
                     pCtx.fillStyle = '#2ECC71'; pCtx.fillRect(s_x + s_a + s_b, s_y + s_a + s_b, s_c, s_c);
                     pCtx.fillStyle = '#F39C12'; pCtx.fillRect(s_x + s_a, s_y, s_b, s_a);
                     pCtx.fillStyle = '#1ABC9C'; pCtx.fillRect(s_x, s_y + s_a, s_a, s_b);
+                    break;
+
+                // NEW: Sum of Cubes Preview
+                case 'a_cu_plus_b_cu':
+                    // Mimic the exploded 3D view
+                    const startX = 75;
+                    const startY = 20;
+                    
+                    // --- Left Stack (a group) ---
+                    // Blue Cube (a^3)
+                    pCtx.fillStyle = '#007bff'; 
+                    pCtx.fillRect(startX, startY, 40, 40);
+                    pCtx.fillStyle = 'white'; pCtx.font = 'bold 12px sans-serif'; pCtx.fillText("a³", startX + 20, startY + 20);
+                    
+                    // Green (a^2b)
+                    pCtx.fillStyle = '#5cb85c'; 
+                    pCtx.fillRect(startX, startY + 42, 40, 25);
+                    
+                    // Yellow (ab^2)
+                    pCtx.fillStyle = '#f0ad4e'; 
+                    pCtx.fillRect(startX, startY + 69, 40, 20);
+                    
+                    // --- Right Stack (b group) ---
+                    const rightX = startX + 60;
+                    const rightY = startY + 10;
+                    
+                    // Red Cube (b^3)
+                    pCtx.fillStyle = '#d9534f'; 
+                    pCtx.fillRect(rightX, rightY, 30, 30);
+                    pCtx.fillStyle = 'white'; pCtx.fillText("b³", rightX + 15, rightY + 15);
+
+                    // Gray (-a^2b) - taller block
+                    pCtx.fillStyle = '#6c757d'; 
+                    pCtx.fillRect(rightX, rightY + 32, 30, 40); 
+                    
+                    // Gray (-ab^2) - shorter block
+                    pCtx.fillStyle = '#6c757d'; 
+                    pCtx.fillRect(rightX, rightY + 74, 30, 25);
                     break;
 
                 default:
