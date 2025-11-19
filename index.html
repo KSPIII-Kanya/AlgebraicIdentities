@@ -1,441 +1,342 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Kanya Sampoorna Project - Math Simulation</title>
-    <style>
-        :root {
-            --header-height: 120px;
-            --footer-height: 50px;
-            --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            --color-primary: #005A9C;
-            --color-text-light: #FFFFFF;
-            --color-text-dark: #333333;
-            --color-bg-light: #F4F9FF;
-            --color-border: #DDDDDD;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-
-        html, body {
-            height: 100%;
-            width: 100%;
-            font-family: var(--font-sans);
-            background-color: var(--color-bg-light);
-            color: var(--color-text-dark);
-            overflow: hidden;
-        }
-
-        .app-container { display: flex; flex-direction: column; height: 100%; width: 100%; }
-
-        .header {
-            width: 100%;
-            height: var(--header-height);
-            background-color: var(--color-primary);
-            color: var(--color-text-light);
-            text-align: center;
-            padding: 1rem;
-            flex-shrink: 0;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            line-height: 1.4;
-        }
-
-        .header h1 { font-size: clamp(1.2rem, 3.5vw, 1.8rem); margin: 0; }
-        .header p { font-size: clamp(0.9rem, 2.5vw, 1.1rem); margin: 0; }
-
-        .main-content {
-            width: 100%;
-            flex-grow: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 1.5rem;
-        }
-
-        .footer {
-            width: 100%;
-            height: var(--footer-height);
-            background-color: var(--color-primary);
-            color: var(--color-text-light);
-            text-align: center;
-            padding: 1rem;
-            flex-shrink: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: clamp(0.8rem, 2vw, 1rem);
-        }
-
-        #identity-menu {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-
-        .identity-card {
-            background-color: #FFFFFF;
-            border: 1px solid var(--color-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            min-height: 280px;
-        }
-
-        .identity-card:hover { transform: translateY(-5px); box-shadow: 0 8px 20px rgba(0, 90, 156, 0.15); }
-
-        .identity-preview {
-            width: 100%;
-            height: 120px;
-            margin-bottom: 1rem;
-            border: 1px solid var(--color-border);
-            border-radius: 8px;
-            background-color: #fdfdfd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-        }
-
-        .identity-preview-canvas { width: 100%; height: 100%; display: block; }
-        .identity-preview-img { max-width: 100%; max-height: 100%; object-fit: contain; display: block; }
-
-        .identity-name { font-size: 1.25rem; font-weight: 600; color: var(--color-primary); margin-bottom: 0.5rem; }
-        .identity-formula { font-size: 1.1rem; font-weight: 500; color: var(--color-text-dark); font-family: monospace; margin-bottom: 1rem; }
-
-        .status-badge { font-size: 0.9rem; font-weight: 600; padding: 0.5em 1em; border-radius: 20px; align-self: center; margin-top: auto; }
-        .status-badge.complete { background-color: #E8F5E9; color: #2E7D32; }
-        .status-badge.coming-soon { background-color: #FFF3E0; color: #E65100; }
-
-        a.identity-card-link-wrapper { text-decoration: none; color: inherit; display: block; }
-        div.identity-card-link-wrapper { display: block; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Kanya Sampoorna Project - Math Simulation</title>
+  <style>
+    :root{
+      --header-height:120px;
+      --footer-height:50px;
+      --font-sans:-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+      --color-primary:#005A9C;
+      --color-text-light:#FFFFFF;
+      --color-text-dark:#333333;
+      --color-bg-light:#F4F9FF;
+      --color-border:#DDDDDD;
+    }
+    *{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;width:100%;font-family:var(--font-sans);background-color:var(--color-bg-light);color:var(--color-text-dark);overflow:hidden}
+    .app-container{display:flex;flex-direction:column;height:100%;width:100%}
+    .header{width:100%;height:var(--header-height);background-color:var(--color-primary);color:var(--color-text-light);text-align:center;padding:1rem;flex-shrink:0;display:flex;flex-direction:column;justify-content:center;align-items:center;line-height:1.4}
+    .header h1{font-size:clamp(1.2rem,3.5vw,1.8rem);margin:0}
+    .header p{font-size:clamp(0.9rem,2.5vw,1.1rem);margin:0}
+    .main-content{width:100%;flex-grow:1;overflow-y:auto;overflow-x:hidden;padding:1.5rem}
+    .footer{width:100%;height:var(--footer-height);background-color:var(--color-primary);color:var(--color-text-light);text-align:center;padding:1rem;flex-shrink:0;display:flex;justify-content:center;align-items:center;font-size:clamp(0.8rem,2vw,1rem)}
+    #identity-menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1.5rem;max-width:1200px;margin:0 auto}
+    .identity-card{background-color:#fff;border:1px solid var(--color-border);border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;transition:transform .2s ease,box-shadow .2s ease;box-shadow:0 4px 12px rgba(0,0,0,.05);display:flex;flex-direction:column;justify-content:space-between;min-height:280px}
+    .identity-card:hover{transform:translateY(-5px);box-shadow:0 8px 20px rgba(0,90,156,.15)}
+    .identity-preview{width:100%;height:120px;margin-bottom:1rem;border:1px solid var(--color-border);border-radius:8px;background-color:#fdfdfd;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .identity-preview-canvas{width:100%;height:100%;display:block}
+    .identity-preview-img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+    .identity-name{font-size:1.25rem;font-weight:600;color:var(--color-primary);margin-bottom:.5rem}
+    .identity-formula{font-size:1.1rem;font-weight:500;color:var(--color-text-dark);font-family:monospace;margin-bottom:1rem}
+    .status-badge{font-size:.9rem;font-weight:600;padding:.5em 1em;border-radius:20px;align-self:center;margin-top:auto}
+    .status-badge.complete{background-color:#E8F5E9;color:#2E7D32}
+    .status-badge.coming-soon{background-color:#FFF3E0;color:#E65100}
+    a.identity-card-link-wrapper{text-decoration:none;color:inherit;display:block}
+    div.identity-card-link-wrapper{display:block}
+  </style>
 </head>
 <body>
-    <div class="app-container">
-        <header class="header">
-            <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
-            <p><strong>The project is supported by TITAN and implemented by KALIKE</strong></p>
-            <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
-        </header>
+  <div class="app-container">
+    <header class="header">
+      <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+      <p><strong>The project is supported by TITAN and implemented by KALIKE</strong></p>
+      <p>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities</p>
+    </header>
 
-        <main class="main-content" id="main-content-area">
-            <div id="identity-menu"></div>
-        </main>
+    <main class="main-content" id="main-content-area">
+      <div id="identity-menu"></div>
+    </main>
 
-        <footer class="footer">
-            <p><strong>Powered by AI and created by Kalike: An initiative of Tata Trusts.</strong></p>
-        </footer>
-    </div>
+    <footer class="footer">
+      <p><strong>Powered by AI and created by Kalike: An initiative of Tata Trusts.</strong></p>
+    </footer>
+  </div>
 
-    <script>
-        // ===========================
-        // DATA
-        // ===========================
-        const IDENTITIES = [
-            { id: 'a_plus_b_sq', name: 'Square of a Sum', formula: '(a + b)² = a² + 2ab + b²', status: 'complete', type: 'puzzle' },
-            { id: 'a_minus_b_sq', name: 'Square of a Difference', formula: '(a - b)² = a² - 2ab + b²', status: 'complete', type: 'interactive-step' },
-            { id: 'a_sq_minus_b_sq', name: 'Difference of Squares', formula: 'a² - b² = (a + b)(a - b)', status: 'complete', type: 'interactive-step' },
-            { id: 'a_plus_b_plus_c_sq', name: 'Square of a Trinomial', formula: '(a + b + c)² = a² + b² + c² + 2ab + 2bc + 2ca', status: 'complete', type: 'puzzle' },
-            { id: 'a_plus_b_cu', name: 'Cube of a Sum', formula: '(a + b)³ = a³ + 3a²b + 3ab² + b³', status: 'complete', type: 'stepped' },
+  <script>
+    // ===========================
+    // DATA
+    // ===========================
+    const IDENTITIES = [
+      { id: 'a_plus_b_sq', name: 'Square of a Sum', formula: '(a + b)² = a² + 2ab + b²', status: 'complete', type: 'puzzle' },
+      { id: 'a_minus_b_sq', name: 'Square of a Difference', formula: '(a - b)² = a² - 2ab + b²', status: 'complete', type: 'interactive-step' },
+      { id: 'a_sq_minus_b_sq', name: 'Difference of Squares', formula: 'a² - b² = (a + b)(a - b)', status: 'complete', type: 'interactive-step' },
+      { id: 'a_plus_b_plus_c_sq', name: 'Square of a Trinomial', formula: '(a + b + c)² = a² + b² + c² + 2ab + 2bc + 2ca', status: 'complete', type: 'puzzle' },
+      { id: 'a_plus_b_cu', name: 'Cube of a Sum', formula: '(a + b)³ = a³ + 3a²b + 3ab² + b³', status: 'complete', type: 'stepped' },
 
-            // 6th: Cube of a Difference (COMPLETE) — show formulae.png here and link to a7.html
-            { id: 'a_minus_b_cu', name: 'Cube of a Difference', formula: '(a - b)³ = a³ - 3a²b + 3ab² - b³', status: 'complete', type: 'stepped' },
+      // cube of a difference (uses formulae.png preview)
+      { id: 'a_minus_b_cu', name: 'Cube of a Difference', formula: '(a - b)³ = a³ - 3a²b + 3ab² - b³', status: 'complete', type: 'stepped' },
 
-            // 7th: Sum of cubes (NOW COMPLETE)
-            { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'complete', type: 'stepped' },
+      // sum of cubes
+      { id: 'a_cu_plus_b_cu', name: 'Sum of Cubes', formula: 'a³ + b³ = (a + b)(a² - ab + b²)', status: 'complete', type: 'stepped' },
 
-            // 8th: Difference of Cubes - READY NOW (changed to complete and links to a9.html)
-            { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'complete', type: 'stepped' },
+      // difference of cubes - now marked complete and links to a9.html
+      { id: 'a_cu_minus_b_cu', name: 'Difference of Cubes', formula: 'a³ - b³ = (a - b)(a² + ab + b²)', status: 'complete', type: 'stepped' },
 
-            { id: 'x_plus_y_sq_plus_x_minus_y_sq', name: 'Sum of Squares (Expanded)', formula: '(x + y)² + (x - y)² = 2(x² + y²)', status: 'coming-soon', type: 'stepped' },
-            { id: 'x_plus_y_sq_minus_x_minus_y_sq', name: 'Difference of Squares (Expanded)', formula: '(x + y)² - (x - y)² = 4xy', status: 'coming-soon', type: 'stepped' },
-            { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'coming-soon', type: 'stepped' },
-            { id: 'pythagoras', name: 'Pythagorean Theorem', formula: 'a² + b² = c²', status: 'coming-soon', type: 'stepped' }
-        ];
+      { id: 'x_plus_y_sq_plus_x_minus_y_sq', name: 'Sum of Squares (Expanded)', formula: '(x + y)² + (x - y)² = 2(x² + y²)', status: 'coming-soon', type: 'stepped' },
+      { id: 'x_plus_y_sq_minus_x_minus_y_sq', name: 'Difference of Squares (Expanded)', formula: '(x + y)² - (x - y)² = 4xy', status: 'coming-soon', type: 'stepped' },
+      { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'coming-soon', type: 'stepped' },
+      { id: 'pythagoras', name: 'Pythagorean Theorem', formula: 'a² + b² = c²', status: 'coming-soon', type: 'stepped' }
+    ];
 
-        // Map completed identity IDs to filenames
-        const FILENAME_MAP = {
-            'a_plus_b_sq': 'a1.html',
-            'a_minus_b_sq': 'a2.html',
-            'a_sq_minus_b_sq': 'a3.html',
-            'a_plus_b_plus_c_sq': 'a4.html',
-            'a_plus_b_cu': 'a6.html',
-            'a_minus_b_cu': 'a7.html',
-            'a_cu_plus_b_cu': 'a8.html',
-            // newly ready difference of cubes
-            'a_cu_minus_b_cu': 'a9.html'
-        };
+    // Map completed identity IDs to filenames
+    const FILENAME_MAP = {
+      'a_plus_b_sq': 'a1.html',
+      'a_minus_b_sq': 'a2.html',
+      'a_sq_minus_b_sq': 'a3.html',
+      'a_plus_b_plus_c_sq': 'a4.html',
+      'a_plus_b_cu': 'a6.html',
+      'a_minus_b_cu': 'a7.html',
+      'a_cu_plus_b_cu': 'a8.html',
+      'a_cu_minus_b_cu': 'a9.html'
+    };
 
-        // ===========================
-        // Helpers: DPR canvas sizing & redraw
-        // ===========================
-        function setupCanvasForDPR(canvas) {
-            // make canvas fill its container visually
-            canvas.style.width = '100%';
-            canvas.style.height = '100%';
+    // ===========================
+    // Helpers: DPR canvas sizing & redraw
+    // ===========================
+    function setupCanvasForDPR(canvas) {
+      canvas.style.width = '100%';
+      canvas.style.height = '100%';
+      const rect = canvas.getBoundingClientRect();
+      if (rect.width === 0 || rect.height === 0) return;
+      const dpr = window.devicePixelRatio || 1;
+      const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
+      const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
+      if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+        canvas.width = pixelWidth;
+        canvas.height = pixelHeight;
+        const ctx = canvas.getContext('2d');
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
+    }
 
-            const rect = canvas.getBoundingClientRect();
-            // if rect has 0 size, bail - nothing to do
-            if (rect.width === 0 || rect.height === 0) return;
-
-            const dpr = window.devicePixelRatio || 1;
-            const pixelWidth = Math.max(1, Math.round(rect.width * dpr));
-            const pixelHeight = Math.max(1, Math.round(rect.height * dpr));
-
-            if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
-                canvas.width = pixelWidth;
-                canvas.height = pixelHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.setTransform(dpr, 0, 0, dpr, 0, 0); // scale to CSS px
-            }
-        }
-
-        // Throttled resize: update all canvases on resize
-        let resizeTimeout;
-        window.addEventListener('resize', () => {
-            clearTimeout(resizeTimeout);
-            resizeTimeout = setTimeout(() => {
-                document.querySelectorAll('.identity-preview-canvas').forEach(canvas => {
-                    setupCanvasForDPR(canvas);
-                    const card = canvas.closest('.identity-card');
-                    if (card) {
-                        const id = card.dataset.id;
-                        const identity = IDENTITIES.find(it => it.id === id);
-                        if (identity) drawIdentityPreview(canvas, identity);
-                    }
-                });
-            }, 120);
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(() => {
+        document.querySelectorAll('.identity-preview-canvas').forEach(canvas => {
+          setupCanvasForDPR(canvas);
+          const card = canvas.closest('.identity-card');
+          if (card) {
+            const id = card.dataset.id;
+            const identity = IDENTITIES.find(it => it.id === id);
+            if (identity) drawIdentityPreview(canvas, identity);
+          }
         });
+      }, 120);
+    });
 
-        // ===========================
-        // INIT & MENU CREATION
-        // ===========================
-        let menuView;
-        window.addEventListener('DOMContentLoaded', () => {
-            menuView = document.getElementById('identity-menu');
-            createIdentityMenu();
+    // ===========================
+    // INIT & MENU CREATION
+    // ===========================
+    let menuView;
+    window.addEventListener('DOMContentLoaded', () => {
+      menuView = document.getElementById('identity-menu');
+      createIdentityMenu();
+    });
+
+    function createIdentityMenu() {
+      menuView.innerHTML = '';
+
+      IDENTITIES.forEach(identity => {
+        const isComplete = identity.status === 'complete';
+        const wrapperTag = isComplete ? 'a' : 'div';
+        const wrapper = document.createElement(wrapperTag);
+        wrapper.className = 'identity-card-link-wrapper';
+
+        if (isComplete) {
+          const filename = FILENAME_MAP[identity.id];
+          wrapper.href = filename ? `./${filename}` : `./sim_${identity.id}.html`;
+          wrapper.style.textDecoration = 'none';
+          wrapper.style.color = 'inherit';
+        }
+
+        const card = document.createElement('div');
+        card.className = 'identity-card';
+        card.dataset.id = identity.id;
+
+        const preview = document.createElement('div');
+        preview.className = 'identity-preview';
+
+        // Special image previews
+        if (identity.id === 'a_cu_minus_b_cu') {
+          const img = document.createElement('img');
+          img.className = 'identity-preview-img';
+          img.alt = identity.name + ' preview';
+          img.src = './difference_of_cubes.png'; // place this file in same folder
+          preview.appendChild(img);
+        } else if (identity.id === 'a_minus_b_cu') {
+          const img = document.createElement('img');
+          img.className = 'identity-preview-img';
+          img.alt = identity.name + ' preview';
+          img.src = './formulae.png';
+          preview.appendChild(img);
+        } else {
+          const previewCanvas = document.createElement('canvas');
+          previewCanvas.className = 'identity-preview-canvas';
+          preview.appendChild(previewCanvas);
+        }
+
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'identity-name';
+        nameDiv.textContent = identity.name;
+
+        const formulaDiv = document.createElement('div');
+        formulaDiv.className = 'identity-formula';
+        formulaDiv.textContent = identity.formula;
+
+        const badge = document.createElement('span');
+        badge.className = `status-badge ${identity.status}`;
+        badge.textContent = identity.status === 'complete' ? 'Start Learning' : 'Coming Soon';
+
+        if (!isComplete) {
+          card.style.cursor = 'not-allowed';
+          card.style.opacity = '0.6';
+        }
+
+        card.appendChild(preview);
+        card.appendChild(nameDiv);
+        card.appendChild(formulaDiv);
+        card.appendChild(badge);
+
+        wrapper.appendChild(card);
+        menuView.appendChild(wrapper);
+
+        // After DOM insertion, setup canvas + draw
+        requestAnimationFrame(() => {
+          const canvasOnCard = card.querySelector('.identity-preview-canvas');
+          if (canvasOnCard) {
+            setupCanvasForDPR(canvasOnCard);
+            drawIdentityPreview(canvasOnCard, identity);
+          }
         });
+      });
+    }
 
-        function createIdentityMenu() {
-            menuView.innerHTML = '';
+    // ===========================
+    // DRAWING
+    // ===========================
+    function drawIdentityPreview(previewCanvas, identity) {
+      const pCtx = previewCanvas.getContext('2d');
+      const w = previewCanvas.clientWidth || 240;
+      const h = previewCanvas.clientHeight || 120;
+      pCtx.clearRect(0, 0, w, h);
+      pCtx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+      pCtx.textAlign = 'center';
+      pCtx.textBaseline = 'middle';
 
-            IDENTITIES.forEach(identity => {
-                const isComplete = identity.status === 'complete';
-                const wrapperTag = isComplete ? 'a' : 'div';
-                const wrapper = document.createElement(wrapperTag);
-                wrapper.className = 'identity-card-link-wrapper';
+      const a = Math.min(70, Math.round(w * 0.33));
+      const b = Math.round(a * 0.6);
+      const c = Math.round(b * 0.6);
+      const a_minus_b = Math.max(6, a - b);
+      const x_base = (w - a) / 2;
+      const y_base = (h - a) / 2;
 
-                if (isComplete) {
-                    const filename = FILENAME_MAP[identity.id];
-                    wrapper.href = filename ? `./${filename}` : `./sim_${identity.id}.html`;
-                    wrapper.style.textDecoration = 'none';
-                    wrapper.style.color = 'inherit';
-                }
+      switch (identity.id) {
+        case 'a_plus_b_sq':
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(x_base, y_base, a, a);
+          pCtx.fillStyle = '#E74C3C';
+          pCtx.fillRect(x_base + a, y_base + a, b, b);
+          pCtx.fillStyle = '#F39C12';
+          pCtx.fillRect(x_base + a, y_base, b, a);
+          pCtx.fillRect(x_base, y_base + a, a, b);
+          break;
 
-                const card = document.createElement('div');
-                card.className = 'identity-card';
-                card.dataset.id = identity.id;
+        case 'a_plus_b_cu':
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(w * 0.4, h * 0.12, a * 0.6, a * 0.6);
+          pCtx.fillStyle = '#F39C12';
+          pCtx.fillRect(w * 0.28, h * 0.7, b * 0.5, b * 0.5);
+          pCtx.fillStyle = '#1ABC9C';
+          pCtx.fillRect(w * 0.18, h * 0.1, a * 0.6, a * 0.45);
+          pCtx.fillStyle = '#2ECC71';
+          pCtx.fillRect(w * 0.72, h * 0.6, b * 0.55, b * 0.55);
+          break;
 
-                // Preview area
-                const preview = document.createElement('div');
-                preview.className = 'identity-preview';
+        case 'a_minus_b_sq':
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(x_base, y_base, a_minus_b, a_minus_b);
+          pCtx.fillStyle = '#E74C3C';
+          pCtx.fillRect(x_base + a_minus_b, y_base + a_minus_b, b, b);
+          pCtx.fillStyle = 'black';
+          pCtx.font = 'bold 11px -apple-system, sans-serif';
+          pCtx.fillText("(a-b)²", x_base + a_minus_b / 2, y_base + a_minus_b / 2);
+          pCtx.fillText("b²", x_base + a_minus_b + b / 2, y_base + a_minus_b + b / 2);
+          break;
 
-                // Image preview for difference of cubes and cube-of-difference
-                if (identity.id === 'a_cu_minus_b_cu') {
-                    const img = document.createElement('img');
-                    img.className = 'identity-preview-img';
-                    img.alt = identity.name + ' preview';
-                    img.src = './difference_of_cubes.png'; // place this file in same folder
-                    preview.appendChild(img);
-                } else if (identity.id === 'a_minus_b_cu') {
-                    // existing special preview (formulae.png)
-                    const img = document.createElement('img');
-                    img.className = 'identity-preview-img';
-                    img.alt = identity.name + ' preview';
-                    img.src = './formulae.png';
-                    preview.appendChild(img);
-                } else {
-                    // canvas preview for others
-                    const previewCanvas = document.createElement('canvas');
-                    previewCanvas.className = 'identity-preview-canvas';
-                    // do NOT set width/height attributes here; size via setupCanvasForDPR
-                    preview.appendChild(previewCanvas);
-                }
+        case 'a_sq_minus_b_sq':
+          const sim_a = Math.round(Math.min(w * 0.55, 90));
+          const sim_b = Math.round(sim_a * 0.5);
+          const sim_a_plus_b = sim_a + sim_b;
+          const sim_a_minus_b = Math.max(12, sim_a - sim_b);
+          const rect_w = sim_a_plus_b;
+          const rect_h = sim_a_minus_b;
+          const rect_x = (w - rect_w) / 2;
+          const rect_y = (h - rect_h) / 2 + 10;
+          pCtx.fillStyle = '#2E86C1';
+          pCtx.fillRect(rect_x, rect_y, sim_a, sim_a_minus_b);
+          pCtx.fillStyle = '#1ABC9C';
+          pCtx.fillRect(rect_x + sim_a, rect_y, sim_b, sim_a_minus_b);
+          pCtx.fillStyle = 'black';
+          pCtx.font = 'bold 12px -apple-system, sans-serif';
+          pCtx.fillText("a", rect_x + sim_a / 2, rect_y - 18);
+          pCtx.fillText("b", rect_x + sim_a + sim_b / 2, rect_y - 18);
+          break;
 
-                const nameDiv = document.createElement('div');
-                nameDiv.className = 'identity-name';
-                nameDiv.textContent = identity.name;
+        case 'a_plus_b_plus_c_sq':
+          const s = Math.min(110, w * 0.85);
+          const total = a + b + c;
+          const s_a = Math.round(s * (a / total));
+          const s_b = Math.round(s * (b / total));
+          const s_c = Math.round(s * (c / total));
+          const s_x = (w - s) / 2;
+          const s_y = (h - s) / 2;
+          pCtx.fillStyle = '#2E86C1'; pCtx.fillRect(s_x, s_y, s_a, s_a);
+          pCtx.fillStyle = '#E74C3C'; pCtx.fillRect(s_x + s_a, s_y + s_a, s_b, s_b);
+          pCtx.fillStyle = '#2ECC71'; pCtx.fillRect(s_x + s_a + s_b, s_y + s_a + s_b, s_c, s_c);
+          pCtx.fillStyle = '#F39C12'; pCtx.fillRect(s_x + s_a, s_y, s_b, s_a);
+          pCtx.fillStyle = '#1ABC9C'; pCtx.fillRect(s_x, s_y + s_a, s_a, s_b);
+          break;
 
-                const formulaDiv = document.createElement('div');
-                formulaDiv.className = 'identity-formula';
-                formulaDiv.textContent = identity.formula;
+        case 'a_cu_plus_b_cu':
+          const startX = Math.max(30, w * 0.22);
+          const startY = Math.max(8, h * 0.08);
+          pCtx.fillStyle = '#007bff';
+          pCtx.fillRect(startX, startY, Math.min(48, a * 0.85), Math.min(48, a * 0.85));
+          pCtx.fillStyle = 'white';
+          pCtx.font = 'bold 12px sans-serif';
+          pCtx.fillText("a³", startX + 20, startY + 20);
+          pCtx.fillStyle = '#5cb85c';
+          pCtx.fillRect(startX, startY + 44, Math.min(48, a * 0.75), 22);
+          pCtx.fillStyle = '#f0ad4e';
+          pCtx.fillRect(startX, startY + 70, Math.min(48, a * 0.6), 18);
+          const rightX = startX + Math.min(48, a * 0.85) + 34;
+          const rightY = startY + 12;
+          pCtx.fillStyle = '#d9534f';
+          pCtx.fillRect(rightX, rightY, Math.min(36, b * 0.85), Math.min(36, b * 0.85));
+          pCtx.fillStyle = 'white';
+          pCtx.fillText("b³", rightX + 15, rightY + 15);
+          pCtx.fillStyle = '#6c757d';
+          pCtx.fillRect(rightX, rightY + 36, Math.min(36, b * 0.85), 38);
+          pCtx.fillRect(rightX, rightY + 78, Math.min(36, b * 0.85), 22);
+          break;
 
-                const badge = document.createElement('span');
-                badge.className = `status-badge ${identity.status}`;
-                badge.textContent = identity.status === 'complete' ? 'Start Learning' : 'Coming Soon';
-
-                if (!isComplete) {
-                    card.style.cursor = 'not-allowed';
-                    card.style.opacity = '0.6';
-                }
-
-                card.appendChild(preview);
-                card.appendChild(nameDiv);
-                card.appendChild(formulaDiv);
-                card.appendChild(badge);
-
-                wrapper.appendChild(card);
-                menuView.appendChild(wrapper);
-
-                // After adding to DOM, setup canvas sizing and draw (if canvas)
-                requestAnimationFrame(() => {
-                    const canvasOnCard = card.querySelector('.identity-preview-canvas');
-                    if (canvasOnCard) {
-                        setupCanvasForDPR(canvasOnCard);
-                        drawIdentityPreview(canvasOnCard, identity);
-                    }
-                });
-            });
-        }
-
-        // ===========================
-        // DRAWING: draws in CSS px space (context scaled to CSS px by setupCanvasForDPR)
-        // ===========================
-        function drawIdentityPreview(previewCanvas, identity) {
-            const pCtx = previewCanvas.getContext('2d');
-            // use clientWidth/clientHeight (CSS px) as drawing coordinates
-            const w = previewCanvas.clientWidth || parseInt(previewCanvas.style.width) || 240;
-            const h = previewCanvas.clientHeight || parseInt(previewCanvas.style.height) || 120;
-
-            // Clear full CSS area
-            pCtx.clearRect(0, 0, w, h);
-
-            // CSS px fonts
-            pCtx.font = 'bold 16px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
-            pCtx.textAlign = 'center';
-            pCtx.textBaseline = 'middle';
-
-            const a = Math.min(70, Math.round(w * 0.33));
-            const b = Math.round(a * 0.6);
-            const c = Math.round(b * 0.6);
-            const a_minus_b = Math.max(6, a - b);
-            const x_base = (w - a) / 2;
-            const y_base = (h - a) / 2;
-
-            switch (identity.id) {
-                case 'a_plus_b_sq':
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(x_base, y_base, a, a);
-                    pCtx.fillStyle = '#E74C3C';
-                    pCtx.fillRect(x_base + a, y_base + a, b, b);
-                    pCtx.fillStyle = '#F39C12';
-                    pCtx.fillRect(x_base + a, y_base, b, a);
-                    pCtx.fillRect(x_base, y_base + a, a, b);
-                    break;
-
-                case 'a_plus_b_cu':
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(w * 0.4, h * 0.12, a * 0.6, a * 0.6); // a^3
-                    pCtx.fillStyle = '#F39C12';
-                    pCtx.fillRect(w * 0.28, h * 0.7, b * 0.5, b * 0.5); // b^3
-                    pCtx.fillStyle = '#1ABC9C';
-                    pCtx.fillRect(w * 0.18, h * 0.1, a * 0.6, a * 0.45); // a^2b
-                    pCtx.fillStyle = '#2ECC71';
-                    pCtx.fillRect(w * 0.72, h * 0.6, b * 0.55, b * 0.55); // ab^2
-                    break;
-
-                case 'a_minus_b_sq':
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(x_base, y_base, a_minus_b, a_minus_b);
-                    pCtx.fillStyle = '#E74C3C';
-                    pCtx.fillRect(x_base + a_minus_b, y_base + a_minus_b, b, b);
-                    pCtx.fillStyle = 'black';
-                    pCtx.font = 'bold 11px -apple-system, sans-serif';
-                    pCtx.fillText("(a-b)²", x_base + a_minus_b / 2, y_base + a_minus_b / 2);
-                    pCtx.fillText("b²", x_base + a_minus_b + b / 2, y_base + a_minus_b + b / 2);
-                    break;
-
-                case 'a_sq_minus_b_sq':
-                    const sim_a = Math.round(Math.min(w * 0.55, 90));
-                    const sim_b = Math.round(sim_a * 0.5);
-                    const sim_a_plus_b = sim_a + sim_b;
-                    const sim_a_minus_b = Math.max(12, sim_a - sim_b);
-                    const rect_w = sim_a_plus_b;
-                    const rect_h = sim_a_minus_b;
-                    const rect_x = (w - rect_w) / 2;
-                    const rect_y = (h - rect_h) / 2 + 10;
-                    pCtx.fillStyle = '#2E86C1';
-                    pCtx.fillRect(rect_x, rect_y, sim_a, sim_a_minus_b);
-                    pCtx.fillStyle = '#1ABC9C';
-                    pCtx.fillRect(rect_x + sim_a, rect_y, sim_b, sim_a_minus_b);
-                    pCtx.fillStyle = 'black';
-                    pCtx.font = 'bold 12px -apple-system, sans-serif';
-                    pCtx.fillText("a", rect_x + sim_a / 2, rect_y - 18);
-                    pCtx.fillText("b", rect_x + sim_a + sim_b / 2, rect_y - 18);
-                    break;
-
-                case 'a_plus_b_plus_c_sq':
-                    const s = Math.min(110, w * 0.85);
-                    const total = a + b + c;
-                    const s_a = Math.round(s * (a / total));
-                    const s_b = Math.round(s * (b / total));
-                    const s_c = Math.round(s * (c / total));
-                    const s_x = (w - s) / 2;
-                    const s_y = (h - s) / 2;
-                    pCtx.fillStyle = '#2E86C1'; pCtx.fillRect(s_x, s_y, s_a, s_a);
-                    pCtx.fillStyle = '#E74C3C'; pCtx.fillRect(s_x + s_a, s_y + s_a, s_b, s_b);
-                    pCtx.fillStyle = '#2ECC71'; pCtx.fillRect(s_x + s_a + s_b, s_y + s_a + s_b, s_c, s_c);
-                    pCtx.fillStyle = '#F39C12'; pCtx.fillRect(s_x + s_a, s_y, s_b, s_a);
-                    pCtx.fillStyle = '#1ABC9C'; pCtx.fillRect(s_x, s_y + s_a, s_a, s_b);
-                    break;
-
-                case 'a_cu_plus_b_cu':
-                    // simple stacked preview to suggest exploded view
-                    const startX = Math.max(30, w * 0.22);
-                    const startY = Math.max(8, h * 0.08);
-                    // left: a group
-                    pCtx.fillStyle = '#007bff';
-                    pCtx.fillRect(startX, startY, Math.min(48, a * 0.85), Math.min(48, a * 0.85));
-                    pCtx.fillStyle = 'white'; pCtx.font = 'bold 12px sans-serif'; pCtx.fillText("a³", startX + 20, startY + 20);
-                    pCtx.fillStyle = '#5cb85c';
-                    pCtx.fillRect(startX, startY + 44, Math.min(48, a * 0.75), 22);
-                    pCtx.fillStyle = '#f0ad4e';
-                    pCtx.fillRect(startX, startY + 70, Math.min(48, a * 0.6), 18);
-                    // right: b group
-                    const rightX = startX + Math.min(48, a * 0.85) + 34;
-                    const rightY = startY + 12;
-                    pCtx.fillStyle = '#d9534f';
-                    pCtx.fillRect(rightX, rightY, Math.min(36, b * 0.85), Math.min(36, b * 0.85));
-                    pCtx.fillStyle = 'white'; pCtx.fillText("b³", rightX + 15, rightY + 15);
-                    pCtx.fillStyle = '#6c757d';
-                    pCtx.fillRect(rightX, rightY + 36, Math.min(36, b * 0.85), 38);
-                    pCtx.fillRect(rightX, rightY + 78, Math.min(36, b * 0.85), 22);
-                    break;
-
-                default:
-                    pCtx.fillStyle = '#333333';
-                    pCtx.font = 'bold 16px monospace';
-                    const parts = (identity.formula || '').split('=');
-                    if (parts.length === 2) {
-                        pCtx.fillText(parts[0], w / 2, h / 2 - 10);
-                        pCtx.fillText('=', w / 2, h / 2 + 8);
-                        pCtx.fillText(parts[1], w / 2, h / 2 + 26);
-                    } else {
-                        pCtx.fillText(identity.formula || identity.name, w / 2, h / 2);
-                    }
-            }
-        }
-    </script>
+        default:
+          pCtx.fillStyle = '#333333';
+          pCtx.font = 'bold 16px monospace';
+          const parts = (identity.formula || '').split('=');
+          if (parts.length === 2) {
+            pCtx.fillText(parts[0], w / 2, h / 2 - 10);
+            pCtx.fillText('=', w / 2, h / 2 + 8);
+            pCtx.fillText(parts[1], w / 2, h / 2 + 26);
+          } else {
+            pCtx.fillText(identity.formula || identity.name, w / 2, h / 2);
+          }
+      }
+    }
+  </script>
 </body>
 </html>
