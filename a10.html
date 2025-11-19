@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanya Sampoorna Project 3.0 - Sum of Squares</title>
+    <style>
+        /* --- STANDARD UI/UX CSS --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+
+        .header h1 { font-size: 1.5rem; font-weight: bold; margin: 0; }
+        .header p { font-size: 0.9rem; margin: 0; }
+        
+        /* Footer */
+        .footer {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            z-index: 10;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex-grow: 1; 
+            display: flex;
+            position: relative; 
+            overflow: hidden; 
+            height: 100%;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Canvas Container (Left) */
+        #canvas-container {
+            position: relative;
+            flex-grow: 1; 
+            height: 100%;
+            z-index: 1;
+            overflow: hidden; 
+            background-color: #fff;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            cursor: default;
+        }
+        
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        /* Formula Container */
+        #formula-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            text-align: center;
+            width: auto;
+            min-width: 350px; 
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 2px solid #004a99;
+            border-radius: 8px;
+            pointer-events: none; 
+            font-size: 1.3rem;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            z-index: 5;
+        }
+
+        /* Math Colors */
+        .c-blue { color: #2196F3; }
+        .c-red { color: #F44336; }
+        .c-yellow { color: #FFC107; }
+        
+        /* UI Panel (Right) */
+        .ui-panel {
+            position: relative;
+            flex-basis: 400px; 
+            flex-shrink: 0;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1);
+            border-left: 1px solid #ccc; 
+            padding: 20px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ui-content {
+            max-height: none;
+            overflow-y: auto;
+            flex-grow: 1; 
+            padding-right: 10px; 
+        }
+
+        /* Step Navigation Styling */
+        .step-header {
+            cursor: pointer;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            background-color: #f4f4f4;
+            transition: background-color 0.2s;
+            border: 1px solid #eee;
+            font-weight: bold;
+        }
+        .step-header:hover { background-color: #e9e9e9; }
+        .step-header.active { background-color: #007bff; color: white; border-color: #007bff; }
+        .step-header h2 { font-size: 1.1rem; margin-bottom: 0; color: #004a99; }
+        .step-header.active h2 { color: white; }
+
+        .step-description {
+            display: none;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+            background: #fafafa;
+        }
+        .step-header.active + .step-description { display: block; }
+
+        /* Instructions Text */
+        .step-description p { 
+            font-size: 1.1rem; 
+            line-height: 1.6; 
+            margin-bottom: 15px; 
+            font-weight: 700; 
+            color: #000; 
+        }
+        .math-box {
+            background-color: #e6f2ff; 
+            border-left: 6px solid #007bff; 
+            padding: 15px;
+            margin-bottom: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111;
+        }
+        .math-box ol { padding-left: 25px; margin: 0; }
+        .math-box li { margin-bottom: 5px; }
+
+        /* Feedback Box */
+        .feedback {
+            font-weight: 800; 
+            color: #004a99;
+            background-color: #f4f8ff;
+            border: 2px solid #b5cde5; 
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        .feedback.success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+        
+        /* Highlight State */
+        .term-active {
+            background-color: #fffacd;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            border-radius: 4px;
+            display: inline-block;
+            padding: 0 4px;
+            transform: scale(1.1);
+            transition: transform 0.2s;
+        }
+
+        /* Buttons */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .sim-button {
+            flex-basis: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sim-button:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .sim-button.reset { background-color: #dc3545; }
+        .sim-button.reset:hover { background-color: #c82333; }
+        .sim-button.menu { background-color: #007bff; }
+        .sim-button.menu:hover { background-color: #0056b3; }
+
+        /* Loading Screen */
+        #loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; color: #004a99; z-index: 100;
+        }
+
+        @media (max-width: 800px) {
+            .content-area { flex-direction: column; }
+            .main-container { flex-direction: column; }
+            #canvas-container { flex-grow: 1; flex-basis: 60%; height: 60%; width: 100%; }
+            .ui-panel { flex-basis: auto; flex-grow: 1; height: 40%; width: 100%; border-left: none; border-top: 1px solid #ccc; padding: 15px; }
+            #formula-container { width: 90%; min-width: auto; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <p><b>The project is supported by TITAN and implemented by KALIKE</b></p>
+        <p><b>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities.</b></p>
+    </div>
+    
+    <div class="content-area">
+        <div id="loader">Loading Simulation...</div>
+
+        <div class="main-container">
+            <!-- Left Side: Canvas -->
+            <div id="canvas-container">
+                <!-- Floating Formula -->
+                <div id="formula-container">
+                    <span id="f-LHS">
+                        (<span id="f-sum" class="c-blue">x+y</span>)² + 
+                        (<span id="f-diff" class="c-yellow">x-y</span>)²
+                    </span>
+                    = 
+                    <span id="f-RHS">
+                        2(<span id="f-x2" class="c-blue">x²</span> + <span id="f-y2" class="c-red">y²</span>)
+                    </span>
+                </div>
+                <canvas id="simCanvas"></canvas>
+            </div>
+
+            <!-- Right Side: UI Panel -->
+            <div class="ui-panel">
+                <div class="ui-content">
+                    
+                    <div class="global-nav">
+                        <button class="sim-button reset" onclick="location.reload()">Reset</button>
+                        <button class="sim-button menu" onclick="location.href='index.html'">Back to Menu</button>
+                    </div>
+
+                    <!-- Step 0 -->
+                    <div class="step-header active" id="step-0-header" onclick="goToStep(0)">
+                        <h2>Step 0: The Pieces</h2>
+                    </div>
+                    <div class="step-description" id="step-0-desc">
+                        <p>We start with two squares:</p>
+                        <div class="math-box">
+                            <ul>
+                                <li><span style="color:#2196F3">■</span> <b>Blue Square:</b> Side (x+y), Area = (x+y)²</li>
+                                <li><span style="color:#fbc02d">■</span> <b>Yellow Square:</b> Side (x-y), Area = (x-y)²</li>
+                            </ul>
+                        </div>
+                        <div class="feedback">Observe the two shapes on the canvas.</div>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="step-header" id="step-1-header" onclick="goToStep(1)">
+                        <h2>Step 1: Expand (x+y)²</h2>
+                    </div>
+                    <div class="step-description" id="step-1-desc">
+                        <p>The large Blue square (x+y)² is made of 4 parts:</p>
+                        <div class="math-box">
+                            <ol>
+                                <li>x² (Blue)</li>
+                                <li>y² (Red)</li>
+                                <li>Two xy rectangles (Green)</li>
+                            </ol>
+                        </div>
+                        <p><b>Action: Click the Blue Square to expand it!</b></p>
+                        <div id="fb-1" class="feedback">Click the Blue Square!</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="step-header" id="step-2-header" onclick="goToStep(2)">
+                        <h2>Step 2: Slice the Rectangles</h2>
+                    </div>
+                    <div class="step-description" id="step-2-desc">
+                        <p>To fit everything, we slice the Green <b>xy</b> rectangles.</p>
+                        <div class="math-box">
+                            Area xy = y(x-y) + y²<br>
+                            We cut a y² square from each green rectangle.
+                        </div>
+                        <p><b>Action: Click BOTH Green Rectangles to slice them!</b></p>
+                        <div id="fb-2" class="feedback">Click a Green Rectangle!</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="step-header" id="step-3-header" onclick="goToStep(3)">
+                        <h2>Step 3: Rearrange</h2>
+                    </div>
+                    <div class="step-description" id="step-3-desc">
+                        <p>Now we rearrange the pieces to form the final result.</p>
+                        <div class="math-box">
+                            Constructed x² = (x-y)² + 2y(x-y) + y²<br>
+                            We create a second perfect x²!
+                        </div>
+                        <p><b>Action: Click any piece to solve the puzzle!</b></p>
+                        <div id="fb-3" class="feedback">Click a piece to arrange!</div>
+                        <div id="final-msg" style="display:none; margin-top:10px;" class="feedback success">
+                            <b>Proof Complete!</b><br>
+                            We now have:<br>
+                            • 2 Blue x² squares<br>
+                            • 2 Red y² squares
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <b>Powered by AI and Created by Kalike - An initiative of TATA Trusts.</b>
+    </div>
+
+    <script>
+        (function() {
+            // --- CONFIGURATION ---
+            const canvas = document.getElementById('simCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('canvas-container');
+            
+            // INCREASED Dimensions (1.5x larger)
+            const BLOCK_SIZE_X = 180; 
+            const BLOCK_SIZE_Y = 75;
+            const DIFF = BLOCK_SIZE_X - BLOCK_SIZE_Y; // (x-y)
+
+            // Colors
+            const C_X2 = '#2196F3'; // Blue
+            const C_Y2 = '#F44336'; // Red
+            const C_XY = '#4CAF50'; // Green
+            const C_DIFF = '#FFC107'; // Yellow for (x-y)^2
+            const C_STRIP = '#00BCD4'; // Cyan for y(x-y)
+            const C_OUTLINE = '#222';
+
+            // State
+            let shapes = [];
+            let currentStep = 0;
+            let animationId = null;
+            const status = { expanded: false, slicedV: false, slicedH: false, arranged: false };
+
+            // --- SHAPE CLASS ---
+            class Shape {
+                constructor(id, x, y, w, h, color, label) {
+                    this.id = id;
+                    this.x = x;
+                    this.y = y;
+                    this.w = w;
+                    this.h = h;
+                    this.color = color;
+                    this.label = label;
+                    this.targetX = x;
+                    this.targetY = y;
+                    this.visible = true;
+                    this.opacity = 1;
+                    this.labelVisible = true;
+                }
+
+                draw() {
+                    if (!this.visible) return;
+                    
+                    ctx.globalAlpha = this.opacity;
+                    
+                    // Shadow
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                    ctx.fillRect(this.x + 5, this.y + 5, this.w, this.h);
+
+                    // Fill
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    
+                    // Outline (Thicker)
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = C_OUTLINE;
+                    ctx.strokeRect(this.x, this.y, this.w, this.h);
+
+                    // Label (Sticker Style - BOLD)
+                    if (this.label && this.labelVisible) {
+                        ctx.fillStyle = '#000';
+                        ctx.font = '900 26px "Arial Black", "Arial", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        // White text shadow outline
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = "#fff";
+                        ctx.strokeText(this.label, this.x + this.w/2, this.y + this.h/2);
+                        ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2);
+                    }
+                    
+                    ctx.globalAlpha = 1;
+                }
+
+                update() {
+                    const speed = 0.08;
+                    if (Math.abs(this.targetX - this.x) > 0.5) this.x += (this.targetX - this.x) * speed;
+                    else this.x = this.targetX;
+
+                    if (Math.abs(this.targetY - this.y) > 0.5) this.y += (this.targetY - this.y) * speed;
+                    else this.y = this.targetY;
+                }
+
+                contains(mx, my) {
+                    return this.visible && mx >= this.x && mx <= this.x + this.w && my >= this.y && my <= this.y + this.h;
+                }
+            }
+
+            // --- INITIALIZATION ---
+            function init() {
+                resize();
+                resetShapes();
+                loop();
+                document.getElementById('loader').style.display = 'none';
+            }
+
+            function resetShapes() {
+                shapes = [];
+                status.expanded = false;
+                status.slicedV = false;
+                status.slicedH = false;
+                status.arranged = false;
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2 + 60; // Moved down slightly to accommodate larger size
+
+                // 1. Big Square (x+y)^2 Composition
+                const startX = cx - 250; // Shifted left
+                const startY = cy - (BLOCK_SIZE_X+BLOCK_SIZE_Y)/2;
+                
+                shapes.push(new Shape('x2_main', startX, startY, BLOCK_SIZE_X, BLOCK_SIZE_X, C_X2, 'x²')); 
+                shapes.push(new Shape('y2_main', startX + BLOCK_SIZE_X, startY + BLOCK_SIZE_X, BLOCK_SIZE_Y, BLOCK_SIZE_Y, C_Y2, 'y²'));
+                shapes.push(new Shape('xy_v', startX + BLOCK_SIZE_X, startY, BLOCK_SIZE_Y, BLOCK_SIZE_X, C_XY, 'xy'));
+                shapes.push(new Shape('xy_h', startX, startY + BLOCK_SIZE_X, BLOCK_SIZE_X, BLOCK_SIZE_Y, C_XY, 'xy'));
+
+                // 2. Small Square (x-y)^2 (Yellow)
+                const diffX = startX + BLOCK_SIZE_X + BLOCK_SIZE_Y + 60;
+                const diffY = cy - DIFF/2;
+                shapes.push(new Shape('diff', diffX, diffY, DIFF, DIFF, C_DIFF, '(x-y)²')); 
+                
+                // 3. Sliced Pieces (Hidden)
+                // Strip A (Cyan)
+                shapes.push(new Shape('strip_a', 0, 0, BLOCK_SIZE_Y, DIFF, C_STRIP, 'y(x-y)'));
+                shapes.find(s => s.id === 'strip_a').visible = false;
+                
+                // Square A (Red y^2)
+                shapes.push(new Shape('y2_a', 0, 0, BLOCK_SIZE_Y, BLOCK_SIZE_Y, C_Y2, 'y²'));
+                shapes.find(s => s.id === 'y2_a').visible = false;
+
+                // Strip B (Cyan)
+                shapes.push(new Shape('strip_b', 0, 0, DIFF, BLOCK_SIZE_Y, C_STRIP, 'y(x-y)'));
+                shapes.find(s => s.id === 'strip_b').visible = false;
+                
+                // Square B (Red y^2)
+                shapes.push(new Shape('y2_b', 0, 0, BLOCK_SIZE_Y, BLOCK_SIZE_Y, C_Y2, 'y²'));
+                shapes.find(s => s.id === 'y2_b').visible = false;
+            }
+
+            // --- ACTION LOGIC ---
+            
+            function doExpand() {
+                if (status.expanded) return;
+                status.expanded = true;
+                
+                const gap = 15; // Increased gap
+                const s_x2_main = shapes.find(s => s.id === 'x2_main');
+                const s_y2_main = shapes.find(s => s.id === 'y2_main');
+                const s_xy_v = shapes.find(s => s.id === 'xy_v');
+                const s_xy_h = shapes.find(s => s.id === 'xy_h');
+
+                s_x2_main.targetX -= gap; s_x2_main.targetY -= gap;
+                s_y2_main.targetX += gap; s_y2_main.targetY += gap;
+                s_xy_v.targetX += gap; s_xy_v.targetY -= gap;
+                s_xy_h.targetX -= gap; s_xy_h.targetY += gap;
+                
+                showFeedback(1, "Expanded! We see x², y², and two xy rectangles.", "success");
+                setTimeout(() => window.goToStep(2), 1500);
+            }
+
+            function doSlice(clickedId) {
+                if (clickedId === 'xy_v' && !status.slicedV) {
+                    status.slicedV = true;
+                    const s_xy_v = shapes.find(s => s.id === 'xy_v');
+                    s_xy_v.visible = false;
+                    
+                    // Vertical split (xy_v)
+                    const sa = shapes.find(s => s.id === 'strip_a');
+                    const y2a = shapes.find(s => s.id === 'y2_a');
+                    
+                    sa.x = s_xy_v.x; sa.y = s_xy_v.y; sa.targetX = sa.x; sa.targetY = sa.y - 15; 
+                    sa.visible = true;
+                    
+                    y2a.x = s_xy_v.x; y2a.y = s_xy_v.y + DIFF; y2a.targetX = y2a.x; y2a.targetY = y2a.y + 15; 
+                    y2a.visible = true;
+                }
+                
+                if (clickedId === 'xy_h' && !status.slicedH) {
+                    status.slicedH = true;
+                    const s_xy_h = shapes.find(s => s.id === 'xy_h');
+                    s_xy_h.visible = false;
+                    
+                    // Horizontal split (xy_h)
+                    const sb = shapes.find(s => s.id === 'strip_b');
+                    const y2b = shapes.find(s => s.id === 'y2_b');
+
+                    sb.x = s_xy_h.x; sb.y = s_xy_h.y; sb.targetX = sb.x - 15; sb.targetY = sb.y; 
+                    sb.visible = true;
+
+                    y2b.x = s_xy_h.x + DIFF; y2b.y = s_xy_h.y; y2b.targetX = y2b.x + 15; y2b.targetY = y2b.y; 
+                    y2b.visible = true;
+                }
+
+                // Check if BOTH are sliced
+                if (status.slicedV && status.slicedH) {
+                    showFeedback(2, "Both Sliced! Green Rectangles became Cyan Strips and Red Squares.", "success");
+                    setTimeout(() => window.goToStep(3), 2000);
+                } else if (status.slicedV || status.slicedH) {
+                     showFeedback(2, "One Sliced! Now click the other green rectangle.", "feedback");
+                }
+            }
+
+            function doArrange() {
+                if (status.arranged) return;
+                status.arranged = true;
+                
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2;
+                
+                // Target 1: x^2 (Blue) -> Left Side
+                const s_x2_main = shapes.find(s => s.id === 'x2_main');
+                const tx1 = cx - BLOCK_SIZE_X - 200; // Moved further left
+                s_x2_main.targetX = tx1;
+                s_x2_main.targetY = cy - BLOCK_SIZE_X/2;
+                
+                // Target 2: Constructed x^2 (Center)
+                const tx2 = cx + 50;
+                const ty = cy - BLOCK_SIZE_X/2;
+                
+                // Yellow (x-y)^2 -> Top Left
+                const s_diff = shapes.find(s => s.id === 'diff');
+                s_diff.targetX = tx2;
+                s_diff.targetY = ty;
+
+                // Strip A (Vert) -> Right of Yellow
+                const sa = shapes.find(s => s.id === 'strip_a');
+                sa.targetX = tx2 + DIFF; 
+                sa.targetY = ty;
+
+                // Strip B (Horiz) -> Bottom of Yellow
+                const sb = shapes.find(s => s.id === 'strip_b');
+                sb.targetX = tx2;
+                sb.targetY = ty + DIFF;
+
+                // Red Square B -> Bottom Right corner of big square
+                const y2b = shapes.find(s => s.id === 'y2_b');
+                y2b.targetX = tx2 + DIFF;
+                y2b.targetY = ty + DIFF;
+                // Keep y2b label Visible
+
+                // 3. Remaining y2s -> Far Right Stack
+                const s_y2_main = shapes.find(s => s.id === 'y2_main'); // Original y^2
+                s_y2_main.targetX = tx2 + BLOCK_SIZE_X + 25;
+                s_y2_main.targetY = ty;
+                
+                const y2a = shapes.find(s => s.id === 'y2_a'); // Sliced y^2
+                y2a.targetX = tx2 + BLOCK_SIZE_X + 25;
+                y2a.targetY = ty + BLOCK_SIZE_Y + 15;
+                
+                showFeedback(3, "Arranged! We have formed two x² groups and two y² groups.", "success");
+                document.getElementById('final-msg').style.display = 'block'; // Show final message
+                
+                // Highlight formula
+                const fLHS = document.getElementById('f-LHS');
+                const fRHS = document.getElementById('f-RHS');
+                if (fLHS) fLHS.style.opacity = '0.5';
+                if (fRHS) fRHS.classList.add('term-active');
+            }
+
+            // --- MAIN LOOP ---
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw all shapes
+                shapes.forEach(s => {
+                    s.update();
+                    s.draw();
+                });
+                
+                // Hover logic
+                let isHovering = false;
+                // Reverse loop for top-most shape priority
+                for (let i = shapes.length - 1; i >= 0; i--) {
+                    let s = shapes[i];
+                    
+                    if (s.contains(mouse.x, mouse.y) && isInteractable(s)) {
+                        canvas.style.cursor = 'pointer';
+                        isHovering = true;
+                        // Draw Highlight
+                        ctx.save();
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                        ctx.strokeRect(s.x - 2, s.y - 2, s.w + 4, s.h + 4);
+                        ctx.restore();
+                        break; // Only highlight top one
+                    }
+                }
+                if (!isHovering) canvas.style.cursor = 'default';
+
+                animationId = requestAnimationFrame(loop);
+            }
+            
+            // --- INPUT ---
+            const mouse = { x: 0, y: 0 };
+            canvas.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = e.clientX - rect.left;
+                mouse.y = e.clientY - rect.top;
+            });
+            
+            canvas.addEventListener('click', e => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                
+                for (let i = shapes.length - 1; i >= 0; i--) {
+                    let s = shapes[i];
+                    if (s.contains(mx, my) && isInteractable(s)) {
+                        handleInteraction(s);
+                        break; 
+                    }
+                }
+            });
+
+            function isInteractable(s) {
+                if (currentStep === 1 && !status.expanded && ['x2_main','y2_main','xy_v','xy_h'].includes(s.id)) return true;
+                
+                // STEP 2 Logic: Allow clicking ONLY the unsliced ones
+                if (currentStep === 2) {
+                    if (s.id === 'xy_v' && !status.slicedV) return true;
+                    if (s.id === 'xy_h' && !status.slicedH) return true;
+                }
+                
+                if (currentStep === 3 && !status.arranged && s.visible) return true;
+                return false;
+            }
+
+            function handleInteraction(clickedShape) {
+                if (currentStep === 1) doExpand();
+                else if (currentStep === 2) doSlice(clickedShape.id); // Pass ID
+                else if (currentStep === 3) doArrange();
+            }
+
+            // --- NAVIGATION ---
+            window.goToStep = function(s) {
+                currentStep = s;
+                // Use element ID for safer selection
+                document.querySelectorAll('.step-header').forEach(h => h.classList.remove('active'));
+                document.querySelectorAll('.step-description').forEach(d => d.style.display = 'none');
+                
+                const header = document.getElementById(`step-${s}-header`);
+                const desc = document.getElementById(`step-${s}-desc`);
+                
+                if (header) header.classList.add('active');
+                if (desc) desc.style.display = 'block';
+                
+                if (s === 0) {
+                    resetShapes();
+                    const fLHS = document.getElementById('f-LHS');
+                    const fRHS = document.getElementById('f-RHS');
+                    if (fLHS) fLHS.style.opacity = '1';
+                    if (fRHS) fRHS.classList.remove('term-active');
+                    resetFeedbacks();
+                }
+            }
+            
+            function showFeedback(step, text, type) {
+                const el = document.getElementById('fb-' + step);
+                if(el) {
+                    el.textContent = text;
+                    el.className = 'feedback ' + type;
+                }
+            }
+            
+            function resetFeedbacks() {
+                const fb1 = document.getElementById('fb-1'); if(fb1) { fb1.className = 'feedback'; fb1.textContent = 'Click to expand!'; }
+                const fb2 = document.getElementById('fb-2'); if(fb2) { fb2.className = 'feedback'; fb2.textContent = 'Click to slice!'; }
+                const fb3 = document.getElementById('fb-3'); if(fb3) { fb3.className = 'feedback'; fb3.textContent = 'Click to arrange!'; }
+                const fm = document.getElementById('final-msg'); if(fm) fm.style.display = 'none';
+            }
+
+            function resize() {
+                if (!container) return;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                resetShapes(); // Re-center on resize
+            }
+            window.addEventListener('resize', resize);
+            
+            // Start
+            init();
+        })();
+    </script>
+</body>
+</html>
