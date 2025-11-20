@@ -69,11 +69,13 @@
       // 9th: Sum of Squares (Expanded)
       { id: 'x_plus_y_sq_plus_x_minus_y_sq', name: 'Sum of Squares (Expanded)', formula: '(x + y)² + (x - y)² = 2(x² + y²)', status: 'complete', type: 'stepped' },
 
-      // 10th: Difference of Squares (Expanded) — MARKED COMPLETE (new)
+      // 10th: Difference of Squares (Expanded)
       { id: 'x_plus_y_sq_minus_x_minus_y_sq', name: 'Difference of Squares (Expanded)', formula: '(x + y)² - (x - y)² = 4xy', status: 'complete', type: 'stepped' },
 
       { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'coming-soon', type: 'stepped' },
-      { id: 'pythagoras', name: 'Pythagorean Theorem', formula: 'a² + b² = c²', status: 'coming-soon', type: 'stepped' }
+
+      // 12th: Pythagorean Theorem — now READY (marked complete)
+      { id: 'pythagoras', name: 'Pythagorean Theorem', formula: 'a² + b² = c²', status: 'complete', type: 'stepped' }
     ];
 
     // Map completed identity IDs to filenames
@@ -87,7 +89,8 @@
       'a_cu_plus_b_cu': 'a8.html',
       'a_cu_minus_b_cu': 'a9.html',
       'x_plus_y_sq_plus_x_minus_y_sq': 'a10.html',
-      'x_plus_y_sq_minus_x_minus_y_sq': 'a11.html'
+      'x_plus_y_sq_minus_x_minus_y_sq': 'a11.html',
+      'pythagoras': 'a13.html'
     };
 
     // ===========================
@@ -181,6 +184,13 @@
           img.className = 'identity-preview-img';
           img.alt = identity.name + ' preview';
           img.src = './formulae.png';
+          preview.appendChild(img);
+        } else if (identity.id === 'pythagoras') {
+          // Pythagorean preview image (place this file in same folder)
+          const img = document.createElement('img');
+          img.className = 'identity-preview-img';
+          img.alt = identity.name + ' preview';
+          img.src = './pythagoras_preview.png'; // save the attached preview under this filename
           preview.appendChild(img);
         } else {
           const previewCanvas = document.createElement('canvas');
