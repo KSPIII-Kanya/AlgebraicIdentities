@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Difference of Squares (Expanded)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/renderers/CSS2DRenderer.js"></script>
+    
+    <style>
+        /* --- STANDARD UI/UX CSS --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: bold; margin: 0; }
+        .header p { font-size: 0.9rem; margin: 0; }
+        
+        /* Footer */
+        .footer {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            z-index: 10;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex-grow: 1; 
+            display: flex;
+            position: relative; 
+            overflow: hidden; 
+            height: 100%;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Canvas Container */
+        #canvas-container {
+            position: relative;
+            flex-grow: 1; 
+            height: 100%;
+            z-index: 1;
+            overflow: hidden; 
+            background-color: #fff;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            cursor: default;
+        }
+        
+        canvas { display: block; width: 100%; height: 100%; }
+        
+        /* Formula Container */
+        #formula-container {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 25px;
+            text-align: center;
+            min-width: 400px; 
+            background-color: rgba(255, 255, 255, 0.95);
+            border: 3px solid #004a99;
+            border-radius: 8px;
+            pointer-events: none; 
+            font-size: 1.5rem;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 5;
+        }
+
+        /* Math Colors */
+        .c-blue { color: #2196F3; }
+        .c-green { color: #4CAF50; }
+        .c-yellow { color: #fbc02d; }
+        .c-red { color: #F44336; }
+        .term-active {
+            background-color: #fffacd;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            border-radius: 6px;
+            display: inline-block;
+            padding: 2px 6px;
+            transform: scale(1.15);
+            transition: transform 0.2s;
+            border: 2px solid #ffeb3b;
+        }
+
+        /* UI Panel */
+        .ui-panel {
+            position: relative;
+            flex-basis: 400px; 
+            flex-shrink: 0;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1);
+            border-left: 1px solid #ccc; 
+            padding: 20px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ui-content {
+            max-height: none;
+            overflow-y: auto;
+            flex-grow: 1; 
+            padding-right: 10px; 
+        }
+
+        /* Step Navigation */
+        .step-header {
+            cursor: pointer;
+            padding: 12px 10px;
+            border-radius: 8px;
+            margin-bottom: 5px;
+            background-color: #f4f4f4;
+            transition: background-color 0.2s;
+            border: 1px solid #eee;
+            font-weight: bold;
+        }
+        .step-header:hover { background-color: #e9e9e9; }
+        .step-header.active { background-color: #007bff; color: white; border-color: #007bff; }
+        
+        .step-description {
+            display: none;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+            margin-bottom: 5px;
+            background: #fafafa;
+        }
+        .step-header.active + .step-description { display: block; }
+
+        /* Text Styling */
+        .step-description p { 
+            font-size: 1.1rem; 
+            line-height: 1.6; 
+            margin-bottom: 15px; 
+            font-weight: 700; 
+            color: #000; 
+        }
+        .math-box {
+            background-color: #e6f2ff; 
+            border-left: 6px solid #007bff; 
+            padding: 15px;
+            margin-bottom: 15px;
+            font-family: 'Segoe UI', sans-serif;
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111;
+        }
+        .math-box ul { padding-left: 25px; margin: 0; }
+        .math-box li { margin-bottom: 5px; }
+
+        /* Feedback Box */
+        .feedback {
+            font-weight: 800; 
+            color: #004a99;
+            background-color: #f4f8ff;
+            border: 2px solid #b5cde5; 
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        .feedback.success { color: #155724; background-color: #d4edda; border-color: #c3e6cb; }
+
+        /* Buttons */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .sim-button {
+            flex-basis: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sim-button:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        .sim-button.reset { background-color: #dc3545; }
+        .sim-button.reset:hover { background-color: #c82333; }
+        .sim-button.menu { background-color: #007bff; }
+        .sim-button.menu:hover { background-color: #0056b3; }
+
+        #loader {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fff; display: flex; justify-content: center; align-items: center;
+            font-size: 1.5rem; color: #004a99; z-index: 100;
+        }
+
+        @media (max-width: 800px) {
+            .content-area { flex-direction: column; }
+            .main-container { flex-direction: column; }
+            #canvas-container { flex-grow: 1; flex-basis: 60%; height: 60%; width: 100%; }
+            .ui-panel { flex-basis: auto; flex-grow: 1; height: 40%; width: 100%; border-left: none; border-top: 1px solid #ccc; padding: 15px; }
+            #formula-container { width: 90%; min-width: auto; font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <p><b>The project is supported by TITAN and implemented by KALIKE</b></p>
+        <p><b>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities.</b></p>
+    </div>
+    
+    <div class="content-area">
+        <div id="loader">Loading Simulation...</div>
+
+        <div class="main-container">
+            <!-- Left Side: Canvas -->
+            <div id="canvas-container">
+                <!-- Floating Formula -->
+                <div id="formula-container">
+                    <span id="f-LHS">
+                        (<span id="f-sum" class="c-blue">x+y</span>)² - 
+                        (<span id="f-diff" class="c-yellow">x-y</span>)²
+                    </span>
+                    = 
+                    <span id="f-RHS" class="c-green">4xy</span>
+                </div>
+                <canvas id="simCanvas"></canvas>
+            </div>
+
+            <!-- Right Side: UI Panel -->
+            <div class="ui-panel">
+                <div class="ui-content">
+                    
+                    <div class="global-nav">
+                        <button class="sim-button reset" onclick="location.reload()">Reset</button>
+                        <button class="sim-button menu" onclick="location.href='index.html'">Back to Menu</button>
+                    </div>
+
+                    <!-- Step 0 -->
+                    <div class="step-header active" id="step-0-header" onclick="goToStep(0)">
+                        <h2>Step 0: The Components</h2>
+                    </div>
+                    <div class="step-description" id="step-0-desc">
+                        <p>We have 5 pieces:</p>
+                        <div class="math-box">
+                            <ul>
+                                <li>4 Green Rectangles (Area = <b>xy</b>)</li>
+                                <li>1 Yellow Square (Area = <b>(x-y)²</b>)</li>
+                            </ul>
+                        </div>
+                        <div class="feedback">Observe the scattered pieces.</div>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div class="step-header" id="step-1-header" onclick="goToStep(1)">
+                        <h2>Step 1: Build Big Square</h2>
+                    </div>
+                    <div class="step-description" id="step-1-desc">
+                        <p>Let's arrange these pieces to form a large perfect square of side <b>(x+y)</b>.</p>
+                        <div class="math-box">
+                            Total Area = 4xy + (x-y)²
+                        </div>
+                        <p><b>Action: Click any piece to assemble the square!</b></p>
+                        <div id="fb-1" class="feedback">Click a piece to build!</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div class="step-header" id="step-2-header" onclick="goToStep(2)">
+                        <h2>Step 2: Subtract (x-y)²</h2>
+                    </div>
+                    <div class="step-description" id="step-2-desc">
+                        <p>The formula asks us to subtract <b>(x-y)²</b> from the total area <b>(x+y)²</b>.</p>
+                        <p><b>Action: Click the central Yellow Square to remove it!</b></p>
+                        <div id="fb-2" class="feedback">Click the Yellow Square!</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div class="step-header" id="step-3-header" onclick="goToStep(3)">
+                        <h2>Step 3: The Result</h2>
+                    </div>
+                    <div class="step-description" id="step-3-desc">
+                        <p>What is left?</p>
+                        <div class="math-box">
+                            Remaining: 4 Green Rectangles.
+                        </div>
+                        <p><b>Action: Click the rectangles to arrange them in a grid!</b></p>
+                        <div id="fb-3" class="feedback">Click to arrange!</div>
+                        <div id="final-msg" style="display:none; margin-top:10px;" class="feedback success">
+                            <b>Proof Complete!</b><br>
+                            Area Remaining = 4 × xy = <b>4xy</b>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <b>Powered by AI and Created by Kalike - An initiative of TATA Trusts.</b>
+    </div>
+
+    <script>
+        (function() {
+            const canvas = document.getElementById('simCanvas');
+            const ctx = canvas.getContext('2d');
+            const container = document.getElementById('canvas-container');
+            
+            // Dimensions (Logic units) - REDUCED SIZES FOR BETTER FIT
+            const X = 140; // Significantly reduced from 220
+            const Y = 60;  // Reduced from 90
+            
+            // Colors
+            const C_XY = '#4CAF50'; // Green
+            const C_DIFF = '#fbc02d'; // Yellow (slightly darker for visibility on white)
+            const C_OUTLINE = '#222';
+
+            // State
+            let shapes = [];
+            let currentStep = 0;
+            let animationId = null;
+            const status = { assembled: false, removed: false, arranged: false };
+
+            // --- SHAPE CLASS ---
+            class Shape {
+                constructor(id, x, y, w, h, color, label) {
+                    this.id = id;
+                    this.x = x;
+                    this.y = y;
+                    this.w = w;
+                    this.h = h;
+                    this.color = color;
+                    this.label = label;
+                    this.targetX = x;
+                    this.targetY = y;
+                    this.visible = true;
+                    this.opacity = 1;
+                    this.labelVisible = true;
+                }
+
+                draw() {
+                    if (!this.visible) return;
+                    
+                    ctx.globalAlpha = this.opacity;
+                    
+                    // Shadow
+                    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+                    ctx.fillRect(this.x + 6, this.y + 6, this.w, this.h);
+
+                    // Fill
+                    ctx.fillStyle = this.color;
+                    ctx.fillRect(this.x, this.y, this.w, this.h);
+                    
+                    // Outline (Thicker)
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = C_OUTLINE;
+                    ctx.strokeRect(this.x, this.y, this.w, this.h);
+
+                    // Label (Sticker Style - BOLD)
+                    if (this.label && this.labelVisible) {
+                        ctx.fillStyle = '#000';
+                        // Adjusted Font size for smaller shapes
+                        ctx.font = '900 22px "Arial Black", "Arial", sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        // White text shadow outline
+                        ctx.lineWidth = 4;
+                        ctx.strokeStyle = "#fff";
+                        ctx.strokeText(this.label, this.x + this.w/2, this.y + this.h/2);
+                        ctx.fillText(this.label, this.x + this.w/2, this.y + this.h/2);
+                    }
+                    
+                    ctx.globalAlpha = 1;
+                }
+
+                update() {
+                    const speed = 0.08;
+                    if (Math.abs(this.targetX - this.x) > 0.5) this.x += (this.targetX - this.x) * speed;
+                    else this.x = this.targetX;
+
+                    if (Math.abs(this.targetY - this.y) > 0.5) this.y += (this.targetY - this.y) * speed;
+                    else this.y = this.targetY;
+                }
+
+                contains(mx, my) {
+                    return this.visible && mx >= this.x && mx <= this.x + this.w && my >= this.y && my <= this.y + this.h;
+                }
+            }
+
+            // --- INITIALIZATION ---
+            function init() {
+                if(!container) return;
+                resize();
+                window.addEventListener('resize', () => {
+                    resize();
+                });
+                
+                resetShapes();
+                loop();
+                document.getElementById('loader').style.display = 'none';
+            }
+
+            function resetShapes() {
+                shapes = [];
+                status.assembled = false;
+                status.removed = false;
+                status.arranged = false;
+
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2 + 40; // Shifted down
+                
+                // Step 0: Scattered pieces
+                // Center piece (x-y)^2
+                const diff = X - Y; 
+                shapes.push(new Shape('diff', cx - diff/2, cy - diff/2, diff, diff, C_DIFF, '(x-y)²'));
+                
+                // 4 Rectangles scattered around - Reduced Gap significantly
+                const gap = 120; 
+                shapes.push(new Shape('r1', cx - gap - X, cy - gap, X, Y, C_XY, 'xy'));
+                shapes.push(new Shape('r2', cx + gap, cy - gap, Y, X, C_XY, 'xy')); // Vertical
+                shapes.push(new Shape('r3', cx + gap, cy + gap, X, Y, C_XY, 'xy'));
+                shapes.push(new Shape('r4', cx - gap - Y, cy + gap, Y, X, C_XY, 'xy')); // Vertical
+            }
+
+            // --- ACTION LOGIC ---
+            
+            function doAssemble() {
+                if (status.assembled) return;
+                status.assembled = true;
+                
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2 + 40;
+                
+                const L = X + Y; 
+                const bx = cx - L/2;
+                const by = cy - L/2;
+                
+                // Assemble Pinwheel
+                const r1 = shapes.find(s => s.id === 'r1');
+                r1.targetX = bx; r1.targetY = by;
+                
+                const r2 = shapes.find(s => s.id === 'r2');
+                r2.targetX = bx + X; r2.targetY = by;
+                
+                const r3 = shapes.find(s => s.id === 'r3');
+                r3.targetX = bx + Y; r3.targetY = by + X;
+                
+                const r4 = shapes.find(s => s.id === 'r4');
+                r4.targetX = bx; r4.targetY = by + Y;
+
+                const diffObj = shapes.find(s => s.id === 'diff');
+                diffObj.targetX = bx + Y;
+                diffObj.targetY = by + Y;
+                
+                showFeedback(1, "Assembled! A massive square of side (x+y).", "success");
+                highlightTerm('f-sum', true);
+                setTimeout(() => window.goToStep(2), 2000);
+            }
+
+            function doRemove() {
+                if (status.removed) return;
+                status.removed = true;
+                
+                const diffObj = shapes.find(s => s.id === 'diff');
+                diffObj.targetY = -400; // Fly up/out
+                
+                highlightTerm('f-sum', false);
+                highlightTerm('f-diff', true);
+
+                showFeedback(2, "Removed (x-y)²! Left with 4 green blocks.", "success");
+                setTimeout(() => {
+                    diffObj.visible = false;
+                    window.goToStep(3);
+                }, 1500);
+            }
+
+            function doArrange() {
+                if (status.arranged) return;
+                status.arranged = true;
+                
+                const cx = canvas.width / 2;
+                const cy = canvas.height / 2 + 40;
+                const gap = 20;
+                
+                const startX = cx - (X + X + gap)/2;
+                const startY = cy - (Y + Y + gap)/2;
+                
+                // Top Row
+                const r1 = shapes.find(s => s.id === 'r1');
+                r1.targetX = startX; 
+                r1.targetY = startY;
+                
+                const r3 = shapes.find(s => s.id === 'r3');
+                r3.targetX = startX + X + gap; 
+                r3.targetY = startY;
+                
+                // Bottom Row - Morph verticals to horizontals for grid
+                const r2 = shapes.find(s => s.id === 'r2'); 
+                r2.w = X; r2.h = Y; 
+                r2.targetX = startX; 
+                r2.targetY = startY + Y + gap;
+                
+                const r4 = shapes.find(s => s.id === 'r4'); 
+                r4.w = X; r4.h = Y; 
+                r4.targetX = startX + X + gap; 
+                r4.targetY = startY + Y + gap;
+                
+                showFeedback(3, "Result: 4 huge rectangles. Total = 4xy.", "success");
+                document.getElementById('final-msg').style.display = 'block';
+                
+                highlightTerm('f-diff', false);
+                highlightTerm('f-RHS', true);
+            }
+
+            function loop() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw highlight for (x+y) boundary in step 1
+                if (status.assembled && !status.arranged) {
+                    const r1 = shapes.find(s => s.id === 'r1');
+                    if (Math.abs(r1.x - r1.targetX) < 1) {
+                        const L = X + Y;
+                        ctx.lineWidth = 5;
+                        ctx.strokeStyle = '#004a99';
+                        ctx.setLineDash([10, 8]);
+                        ctx.strokeRect(r1.x - 5, r1.y - 5, L + 10, L + 10);
+                        ctx.setLineDash([]);
+                        
+                        ctx.font = "900 20px Arial";
+                        ctx.fillStyle = "#004a99";
+                        ctx.fillText("x+y", r1.x + L/2, r1.y - 20);
+                        ctx.fillText("x+y", r1.x - 35, r1.y + L/2);
+                    }
+                }
+
+                shapes.forEach(s => {
+                    s.update();
+                    s.draw();
+                });
+                
+                // Hover logic
+                let isHovering = false;
+                for (let i = shapes.length - 1; i >= 0; i--) {
+                    let s = shapes[i];
+                    if (s.contains(mouse.x, mouse.y) && isInteractable(s)) {
+                        canvas.style.cursor = 'pointer';
+                        isHovering = true;
+                        ctx.save();
+                        ctx.lineWidth = 6;
+                        ctx.strokeStyle = 'rgba(0,0,0,0.5)';
+                        ctx.strokeRect(s.x - 2, s.y - 2, s.w + 4, s.h + 4);
+                        ctx.restore();
+                        break;
+                    }
+                }
+                if (!isHovering) canvas.style.cursor = 'default';
+
+                animationId = requestAnimationFrame(loop);
+            }
+            
+            const mouse = { x: 0, y: 0 };
+            canvas.addEventListener('mousemove', e => {
+                const rect = canvas.getBoundingClientRect();
+                mouse.x = e.clientX - rect.left;
+                mouse.y = e.clientY - rect.top;
+            });
+            
+            canvas.addEventListener('click', e => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+                
+                for (let i = shapes.length - 1; i >= 0; i--) {
+                    let s = shapes[i];
+                    if (s.contains(mx, my) && isInteractable(s)) {
+                        handleInteraction(s);
+                        break; 
+                    }
+                }
+            });
+
+            function isInteractable(s) {
+                if (currentStep === 1 && !status.assembled) return true;
+                if (currentStep === 2 && !status.removed && s.id === 'diff') return true;
+                if (currentStep === 3 && !status.arranged && s.visible && s.id !== 'diff') return true;
+                return false;
+            }
+
+            function handleInteraction(s) {
+                if (currentStep === 1) doAssemble();
+                else if (currentStep === 2) doRemove();
+                else if (currentStep === 3) doArrange();
+            }
+
+            window.goToStep = function(s) {
+                currentStep = s;
+                document.querySelectorAll('.step-header').forEach(h => h.classList.remove('active'));
+                document.querySelectorAll('.step-description').forEach(d => d.style.display = 'none');
+                
+                const header = document.getElementById(`step-${s}-header`);
+                const desc = document.getElementById(`step-${s}-desc`);
+                
+                if (header) header.classList.add('active');
+                if (desc) desc.style.display = 'block';
+                
+                if (s === 0) {
+                    resetShapes();
+                    resetFeedbacks();
+                    ['f-sum', 'f-diff', 'f-RHS'].forEach(id => highlightTerm(id, false));
+                }
+            }
+            
+            function showFeedback(step, text, type) {
+                const el = document.getElementById('fb-' + step);
+                if(el) {
+                    el.textContent = text;
+                    el.className = 'feedback ' + type;
+                }
+            }
+            
+            function resetFeedbacks() {
+                const fb1 = document.getElementById('fb-1'); if(fb1) { fb1.className = 'feedback'; fb1.textContent = 'Click to assemble!'; }
+                const fb2 = document.getElementById('fb-2'); if(fb2) { fb2.className = 'feedback'; fb2.textContent = 'Click to remove!'; }
+                const fb3 = document.getElementById('fb-3'); if(fb3) { fb3.className = 'feedback'; fb3.textContent = 'Click to arrange!'; }
+                const fm = document.getElementById('final-msg'); if(fm) fm.style.display = 'none';
+            }
+
+            function highlightTerm(id, active) {
+                const el = document.getElementById(id);
+                if(el) {
+                    if(active) el.classList.add('term-active');
+                    else el.classList.remove('term-active');
+                }
+            }
+
+            function resize() {
+                if (!container) return;
+                canvas.width = container.clientWidth;
+                canvas.height = container.clientHeight;
+                resetShapes(); 
+            }
+            window.addEventListener('resize', resize);
+            
+            init();
+        })();
+    </script>
+</body>
+</html>
