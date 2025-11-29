@@ -55,6 +55,8 @@
       { id: 'a_minus_b_sq', name: 'Square of a Difference', formula: '(a - b)² = a² - 2ab + b²', status: 'complete', type: 'interactive-step' },
       { id: 'a_sq_minus_b_sq', name: 'Difference of Squares', formula: 'a² - b² = (a + b)(a - b)', status: 'complete', type: 'interactive-step' },
       { id: 'a_plus_b_plus_c_sq', name: 'Square of a Trinomial', formula: '(a + b + c)² = a² + b² + c² + 2ab + 2bc + 2ca', status: 'complete', type: 'puzzle' },
+
+      // cube of a sum
       { id: 'a_plus_b_cu', name: 'Cube of a Sum', formula: '(a + b)³ = a³ + 3a²b + 3ab² + b³', status: 'complete', type: 'stepped' },
 
       // cube of a difference (uses formulae.png preview)
@@ -72,9 +74,10 @@
       // 10th: Difference of Squares (Expanded)
       { id: 'x_plus_y_sq_minus_x_minus_y_sq', name: 'Difference of Squares (Expanded)', formula: '(x + y)² - (x - y)² = 4xy', status: 'complete', type: 'stepped' },
 
-      { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'coming-soon', type: 'stepped' },
+      // 11th: Cube of a Trinomial — now READY (marked complete)
+      { id: 'a_plus_b_plus_c_cu', name: 'Cube of a Trinomial', formula: '(a + b + c)³ = a³ + b³ + c³ + 3(a + b)(b + c)(c + a)', status: 'complete', type: 'stepped' },
 
-      // 12th: Pythagorean Theorem — now READY (marked complete)
+      // 12th: Pythagorean Theorem — ready
       { id: 'pythagoras', name: 'Pythagorean Theorem', formula: 'a² + b² = c²', status: 'complete', type: 'stepped' }
     ];
 
@@ -90,6 +93,8 @@
       'a_cu_minus_b_cu': 'a9.html',
       'x_plus_y_sq_plus_x_minus_y_sq': 'a10.html',
       'x_plus_y_sq_minus_x_minus_y_sq': 'a11.html',
+      // user requested that Cube of a Trinomial loads a1.html
+      'a_plus_b_plus_c_cu': 'a1.html',
       'pythagoras': 'a13.html'
     };
 
@@ -179,6 +184,13 @@
           img.alt = identity.name + ' preview';
           img.src = './difference_of_squares_expanded.png'; // put this file in same folder
           preview.appendChild(img);
+        } else if (identity.id === 'a_plus_b_plus_c_cu') {
+          // Cube of a trinomial preview (place this file in same folder)
+          const img = document.createElement('img');
+          img.className = 'identity-preview-img';
+          img.alt = identity.name + ' preview';
+          img.src = './cube_of_trinomial.png'; // save the attached preview under this filename
+          preview.appendChild(img);
         } else if (identity.id === 'a_minus_b_cu') {
           const img = document.createElement('img');
           img.className = 'identity-preview-img';
@@ -186,11 +198,10 @@
           img.src = './formulae.png';
           preview.appendChild(img);
         } else if (identity.id === 'pythagoras') {
-          // Pythagorean preview image (place this file in same folder)
           const img = document.createElement('img');
           img.className = 'identity-preview-img';
           img.alt = identity.name + ' preview';
-          img.src = './pythagoras_preview.png'; // save the attached preview under this filename
+          img.src = './pythagoras_preview.png'; // place the pythagoras preview here
           preview.appendChild(img);
         } else {
           const previewCanvas = document.createElement('canvas');
