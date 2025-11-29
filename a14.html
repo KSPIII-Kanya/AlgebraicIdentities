@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kanya Sampoorna - Cubic Identity</title>
+    <!-- Import Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Import OrbitControls -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <!-- Import Tween.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tween.js/18.6.4/tween.umd.js"></script>
+    <style>
+        /* --- STANDARD UI/UX CSS (STRICTLY FROM PASTED CODE) --- */
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, "Helvetica Neue", Helvetica, sans-serif;
+            background-color: #f0f4f8;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            z-index: 10;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            line-height: 1.4;
+            flex-shrink: 0;
+        }
+        .header h1 { font-size: 1.5rem; font-weight: bold; margin: 0; }
+        .header p { font-size: 0.9rem; margin: 0; }
+        
+        /* Footer */
+        .footer {
+            position: relative; 
+            width: 100%;
+            background-color: #004a99;
+            color: white;
+            padding: 8px;
+            text-align: center;
+            z-index: 10;
+            font-size: 0.8rem;
+            flex-shrink: 0;
+        }
+
+        /* Content Area */
+        .content-area {
+            flex-grow: 1; 
+            display: flex;
+            position: relative; 
+            overflow: hidden; 
+            height: 100%;
+        }
+
+        .main-container {
+            display: flex;
+            flex-direction: row;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Canvas Container */
+        #canvas-container {
+            position: relative;
+            flex-grow: 1; 
+            height: 100%;
+            z-index: 1;
+            overflow: hidden; 
+            background-color: #fff;
+            background-image: radial-gradient(#e0e0e0 1px, transparent 1px);
+            background-size: 20px 20px;
+            cursor: default;
+        }
+        
+        canvas { display: block; width: 100%; height: 100%; outline: none; }
+
+        /* Floating Formula */
+        #formula-container {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 12px 20px;
+            text-align: center;
+            background-color: rgba(255, 255, 255, 0.98);
+            border: 3px solid #004a99;
+            border-radius: 8px;
+            pointer-events: none; 
+            font-size: 1.2rem;
+            font-weight: 900;
+            font-family: 'Courier New', monospace;
+            /* Allow wrapping if needed, but prefer single line */
+            white-space: normal;
+            max-width: 95%;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 5;
+            transition: all 0.3s ease;
+        }
+
+        /* UI Panel */
+        .ui-panel {
+            position: relative;
+            flex-basis: 400px; 
+            flex-shrink: 0;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 1);
+            border-left: 1px solid #ccc; 
+            padding: 20px;
+            z-index: 5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .ui-content {
+            overflow-y: auto;
+            flex-grow: 1; 
+            padding-right: 5px; 
+        }
+
+        /* Interactive Step Cards */
+        .step-card {
+            background: #f9f9f9;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        .step-card.active {
+            background: #fff;
+            border-color: #004a99;
+            border-left: 5px solid #004a99;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .step-header h2 { font-size: 1.1rem; margin-bottom: 10px; color: #004a99; }
+        .step-desc { font-size: 0.95rem; line-height: 1.5; color: #333; margin-bottom: 10px; }
+        
+        .action-box {
+            background-color: #fff3e0;
+            color: #e65100;
+            padding: 10px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-align: center;
+            font-size: 0.95rem;
+            border: 1px solid #ffe0b2;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        .action-box:hover {
+            background-color: #ffe0b2;
+        }
+
+        /* Global Nav */
+        .global-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .sim-button {
+            flex-basis: 48%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .sim-button:hover { box-shadow: 0 4px 8px rgba(0,0,0,0.2); }
+        
+        .sim-button.reset { background-color: #dc3545; }
+        .sim-button.reset:hover { background-color: #c82333; }
+        
+        .sim-button.menu { background-color: #007bff; }
+        .sim-button.menu:hover { background-color: #0056b3; }
+
+        /* Tooltip style for hovering over 3D blocks */
+        #tooltip {
+            position: absolute;
+            background: rgba(44, 62, 80, 0.9);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            font-weight: bold;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 20;
+            border: 1px solid white;
+            transform: translate(15px, 15px);
+        }
+
+        @media (max-width: 800px) {
+            .content-area { flex-direction: column; }
+            .main-container { flex-direction: column; }
+            #canvas-container { flex-grow: 1; flex-basis: 60%; }
+            .ui-panel { flex-basis: auto; flex-grow: 1; height: 40%; border-left: none; border-top: 1px solid #ccc; }
+            /* Adjust formula font size for mobile */
+            #formula-container { 
+                font-size: 0.9rem; 
+                width: 95%; 
+                bottom: 15px;
+                padding: 10px 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Kanya Sampoorna Project 3.0 / Kanya Girls Education Project</h1>
+        <p><b>The project is supported by TITAN and implemented by KALIKE</b></p>
+        <p><b>AI-powered Math Simulation for fun, visual, and interactive learning of Algebraic Identities.</b></p>
+    </div>
+    
+    <div class="content-area">
+        <div class="main-container">
+            <!-- Left Side: Canvas -->
+            <div id="canvas-container">
+                <div id="formula-container">
+                    (a + b + c)³
+                </div>
+                <!-- Tooltip for hovering -->
+                <div id="tooltip"></div>
+            </div>
+
+            <!-- Right Side: UI Panel -->
+            <div class="ui-panel">
+                <div class="ui-content">
+                    
+                    <!-- Navigation Buttons -->
+                    <div class="global-nav">
+                        <button class="sim-button reset" onclick="resetSim()">Reset</button>
+                        <button class="sim-button menu" onclick="location.href='index.html'">Back to Menu</button>
+                    </div>
+
+                    <!-- Step 1 -->
+                    <div id="step-1" class="step-card active">
+                        <div class="step-header"><h2>Step 1: The Whole Cube</h2></div>
+                        <div class="step-desc">
+                            We have a large cube made of block "Legos".
+                            <br>Total volume is <b>(a + b + c)³</b>.
+                            <br>Hover over blocks to see their dimensions.
+                            <br>Let's pull out the main cubes: a³, b³, and c³.
+                        </div>
+                        <div class="action-box" onclick="triggerStep1()">👉 Click to Extract Cubes</div>
+                    </div>
+
+                    <!-- Step 2 -->
+                    <div id="step-2" class="step-card">
+                        <div class="step-header"><h2>Step 2: The Leftovers</h2></div>
+                        <div class="step-desc">
+                            We removed a³, b³, c³.
+                            <br>The remaining blocks look messy.
+                            <br>We need to organize them into 3 identical groups to prove the formula.
+                        </div>
+                        <div class="action-box" onclick="triggerStep2()">👉 Click to Sort into 3 Groups</div>
+                    </div>
+
+                    <!-- Step 3 -->
+                    <div id="step-3" class="step-card">
+                        <div class="step-header"><h2>Step 3: Verification</h2></div>
+                        <div class="step-desc">
+                            Now we have 3 identical towers.
+                            <br>Each tower has volume: <b>(a+b)(b+c)(c+a)</b>
+                            <br>Let's finalize the formula.
+                        </div>
+                        <div class="action-box" onclick="triggerStep3()">👉 Click to Verify</div>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div id="success-msg" class="step-card" style="border-color:#28a745; background-color:#d4edda; display:none; opacity:1;">
+                        <div class="step-header"><h2 style="color:#155724">Verified!</h2></div>
+                        <div class="step-desc" style="color:#155724">
+                            <b>L.H.S = R.H.S</b><br>
+                            (a+b+c)³ = a³ + b³ + c³ + 3(a+b)(b+c)(c+a)
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <b>Powered by AI and Created by Kalike - An initiative of TATA Trusts.</b>
+    </div>
+
+    <script>
+        // --- CONFIGURATION ---
+        const CONFIG = {
+            a: 1.2,
+            b: 1.8,
+            c: 2.4,
+            animSpeed: 1500
+        };
+
+        const COLORS = {
+            a: 0x4ECDC4, // Teal
+            b: 0xFFE66D, // Yellow
+            c: 0xFF6B6B, // Red
+            outline: 0x000000
+        };
+
+        // --- STATE ---
+        let scene, camera, renderer, controls;
+        let blocks = []; 
+        let currentStep = 1;
+        let isAnimating = false;
+
+        function init() {
+            const container = document.getElementById('canvas-container');
+
+            // Scene
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xF7F9FC);
+            // scene.fog = new THREE.Fog(0xF7F9FC, 20, 60);
+
+            // Camera
+            const aspect = container.clientWidth / container.clientHeight;
+            camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 1000);
+            camera.position.set(15, 12, 15);
+            camera.lookAt(0, 0, 0);
+
+            // Renderer
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(container.clientWidth, container.clientHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            container.appendChild(renderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(camera, renderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // Lights
+            const ambient = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambient);
+
+            const mainLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            mainLight.position.set(10, 20, 10);
+            mainLight.castShadow = true;
+            scene.add(mainLight);
+
+            // Ground Plane
+            const planeGeo = new THREE.PlaneGeometry(100, 100);
+            const planeMat = new THREE.ShadowMaterial({ opacity: 0.1 });
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -6;
+            plane.receiveShadow = true;
+            scene.add(plane);
+
+            // Grid
+            const grid = new THREE.GridHelper(50, 50, 0xddd, 0xf0f0f0);
+            grid.position.y = -6;
+            scene.add(grid);
+
+            window.addEventListener('resize', onResize);
+            container.addEventListener('mousemove', onMouseMove);
+
+            createBlocks();
+            animate();
+        }
+
+        function createBlocks() {
+            // Clear existing
+            blocks.forEach(b => scene.remove(b.mesh));
+            blocks = [];
+
+            const sizes = [CONFIG.a, CONFIG.b, CONFIG.c];
+            const sizeLabels = ['a', 'b', 'c'];
+            
+            const totalSize = CONFIG.a + CONFIG.b + CONFIG.c;
+            const offset = -totalSize / 2;
+
+            let xPos = offset;
+            
+            for (let i = 0; i < 3; i++) {
+                const dx = sizes[i];
+                let yPos = offset;
+                
+                for (let j = 0; j < 3; j++) {
+                    const dy = sizes[j];
+                    let zPos = offset;
+                    
+                    for (let k = 0; k < 3; k++) {
+                        const dz = sizes[k];
+                        
+                        // Dimensions now accessible via dx, dy, dz
+                        const geometry = new THREE.BoxGeometry(dx, dy, dz);
+                        
+                        let materialColor = 0xffffff;
+                        let type = 'mix';
+
+                        if(i===0 && j===0 && k===0) { materialColor = COLORS.a; type='a3'; }
+                        else if(i===1 && j===1 && k===1) { materialColor = COLORS.b; type='b3'; }
+                        else if(i===2 && j===2 && k===2) { materialColor = COLORS.c; type='c3'; }
+                        else {
+                            // Alternating pastel colors for the mixed blocks
+                            const mixColors = [0xFFDAC1, 0xE2F0CB, 0xB5EAD7, 0xC7CEEA];
+                            materialColor = mixColors[(i+j+k) % mixColors.length];
+                        }
+
+                        // Use Toon Material for Lego look
+                        const material = new THREE.MeshToonMaterial({ 
+                            color: materialColor,
+                        });
+
+                        const mesh = new THREE.Mesh(geometry, material);
+                        
+                        // Position centered
+                        mesh.position.set(
+                            xPos + dx/2,
+                            yPos + dy/2,
+                            zPos + dz/2
+                        );
+
+                        mesh.castShadow = true;
+                        mesh.receiveShadow = true;
+
+                        // Outline
+                        const edges = new THREE.EdgesGeometry(geometry);
+                        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000, linewidth: 2 }));
+                        mesh.add(line);
+
+                        scene.add(mesh);
+
+                        blocks.push({
+                            mesh: mesh,
+                            originalPos: mesh.position.clone(),
+                            dims: {x: dx, y: dy, z: dz},
+                            labels: {x: sizeLabels[i], y: sizeLabels[j], z: sizeLabels[k]},
+                            type: type
+                        });
+
+                        zPos += dz;
+                    }
+                    yPos += dy;
+                }
+                xPos += dx;
+            }
+        }
+
+        // --- INTERACTION ---
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let hoveredBlock = null;
+
+        function onMouseMove(event) {
+            const container = document.getElementById('canvas-container');
+            const rect = container.getBoundingClientRect();
+
+            // Calculate mouse position relative to container
+            mouse.x = ((event.clientX - rect.left) / container.clientWidth) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / container.clientHeight) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(scene.children.filter(o => o.type === 'Mesh'));
+            const tooltip = document.getElementById('tooltip');
+
+            if (intersects.length > 0) {
+                const mesh = intersects[0].object;
+                const block = blocks.find(b => b.mesh === mesh);
+                
+                if (block) {
+                    if (hoveredBlock !== mesh) {
+                        if (hoveredBlock) hoveredBlock.material.emissive.setHex(0x000000);
+                        hoveredBlock = mesh;
+                        hoveredBlock.material.emissive.setHex(0x444444);
+                        
+                        tooltip.style.opacity = 1;
+                        const l = [block.labels.x, block.labels.y, block.labels.z].sort().join('');
+                        let text = l;
+                        if(l === 'aaa') text = 'a³';
+                        else if(l === 'bbb') text = 'b³';
+                        else if(l === 'ccc') text = 'c³';
+                        else {
+                            if(l[0]===l[1]) text = `${l[0]}²${l[2]}`;
+                            else if(l[1]===l[2]) text = `${l[0]}${l[1]}²`;
+                            else if(l[0]===l[2]) text = `${l[1]}${l[0]}²`;
+                        }
+                        tooltip.innerText = `Vol: ${text}`;
+                    }
+                    // Tooltip follows mouse within container
+                    tooltip.style.left = (event.clientX - rect.left + 15) + 'px';
+                    tooltip.style.top = (event.clientY - rect.top + 15) + 'px';
+                }
+            } else {
+                if (hoveredBlock) hoveredBlock.material.emissive.setHex(0x000000);
+                hoveredBlock = null;
+                tooltip.style.opacity = 0;
+            }
+        }
+
+        function triggerStep1() {
+            if(currentStep !== 1 || isAnimating) return;
+            isAnimating = true;
+
+            const targets = {
+                'a3': new THREE.Vector3(-8, 0, 5),
+                'b3': new THREE.Vector3(0, 0, 8),
+                'c3': new THREE.Vector3(8, 0, 5)
+            };
+
+            blocks.forEach(block => {
+                if (targets[block.type]) {
+                    new TWEEN.Tween(block.mesh.position)
+                        .to(targets[block.type], CONFIG.animSpeed)
+                        .easing(TWEEN.Easing.Back.Out)
+                        .onComplete(() => { isAnimating = false; })
+                        .start();
+                    
+                    new TWEEN.Tween(block.mesh.rotation)
+                        .to({y: Math.PI/4}, CONFIG.animSpeed)
+                        .start();
+                } else {
+                    const dir = block.originalPos.clone().normalize().multiplyScalar(0.5);
+                    new TWEEN.Tween(block.mesh.position)
+                        .to(block.originalPos.clone().add(dir), CONFIG.animSpeed)
+                        .easing(TWEEN.Easing.Elastic.Out)
+                        .start();
+                }
+            });
+
+            document.getElementById('formula-container').innerHTML = "a³ + b³ + c³ + 3 × (Remaining Groups)";
+            updateUIState(2);
+            currentStep = 2;
+        }
+
+        function triggerStep2() {
+            if(currentStep !== 2 || isAnimating) return;
+            isAnimating = true;
+
+            const leftovers = blocks.filter(b => b.type === 'mix');
+            const groups = [[], [], []];
+            leftovers.forEach((b, i) => { groups[i % 3].push(b); });
+
+            const towerX = [-10, 0, 10];
+            
+            groups.forEach((group, groupIdx) => {
+                let currentY = -6; // Start from ground
+                
+                group.forEach((block, i) => {
+                    const targetPos = new THREE.Vector3(
+                        towerX[groupIdx],
+                        currentY + block.dims.y/2,
+                        -5
+                    );
+
+                    new TWEEN.Tween(block.mesh.position)
+                        .to(targetPos, CONFIG.animSpeed + (i * 100))
+                        .easing(TWEEN.Easing.Cubic.InOut)
+                        .onStart(() => {
+                            new TWEEN.Tween(block.mesh.rotation)
+                                .to({x:0, y:0, z:0}, 500)
+                                .start();
+                        })
+                        .onComplete(() => {
+                            if(groupIdx === 2 && i === group.length -1) isAnimating = false;
+                        })
+                        .start();
+
+                    currentY += block.dims.y;
+                });
+            });
+
+            new TWEEN.Tween(camera.position)
+                .to({x: 0, y: 15, z: 25}, 2000)
+                .easing(TWEEN.Easing.Cubic.Out)
+                .start();
+
+            // Updated intermediate text
+            document.getElementById('formula-container').innerHTML = "a³ + b³ + c³ + 3 (a+b)(b+c)(c+a)";
+            updateUIState(3);
+            currentStep = 3;
+        }
+
+        function triggerStep3() {
+            if(currentStep !== 3) return;
+            
+            // Celebration rotation
+            blocks.forEach(b => {
+                new TWEEN.Tween(b.mesh.rotation)
+                    .to({y: b.mesh.rotation.y + Math.PI * 2}, 2000)
+                    .easing(TWEEN.Easing.Cubic.InOut)
+                    .start();
+            });
+
+            // FIXED: Display the full equation to avoid ambiguity
+            document.getElementById('formula-container').innerHTML = "(a+b+c)³ = a³ + b³ + c³ + 3 (a+b)(b+c)(c+a)";
+            document.getElementById('step-3').classList.remove('active');
+            document.getElementById('success-msg').style.display = 'block';
+        }
+
+        function updateUIState(stepNum) {
+            ['step-1', 'step-2', 'step-3'].forEach((id, idx) => {
+                const el = document.getElementById(id);
+                if (idx + 1 === stepNum) el.classList.add('active'); else el.classList.remove('active');
+            });
+        }
+
+        function resetSim() {
+            currentStep = 1;
+            isAnimating = false;
+            
+            updateUIState(1);
+            document.getElementById('success-msg').style.display = 'none';
+            document.getElementById('formula-container').innerHTML = "(a + b + c)³";
+
+            blocks.forEach(block => {
+                new TWEEN.Tween(block.mesh.position)
+                    .to(block.originalPos, CONFIG.animSpeed)
+                    .easing(TWEEN.Easing.Elastic.Out)
+                    .start();
+                
+                new TWEEN.Tween(block.mesh.rotation)
+                    .to({x:0, y:0, z:0}, CONFIG.animSpeed)
+                    .start();
+            });
+
+            new TWEEN.Tween(camera.position)
+                .to({x: 15, y: 12, z: 15}, 2000)
+                .easing(TWEEN.Easing.Cubic.Out)
+                .start();
+        }
+
+        function onResize() {
+            const container = document.getElementById('canvas-container');
+            camera.aspect = container.clientWidth / container.clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(container.clientWidth, container.clientHeight);
+        }
+
+        function animate(time) {
+            requestAnimationFrame(animate);
+            TWEEN.update(time);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+
+        init();
+
+    </script>
+</body>
+</html>
